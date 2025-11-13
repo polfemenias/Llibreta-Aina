@@ -8,8 +8,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react()],
+    // This is the key change. We tell Vite to find the VITE_API_KEY from the environment
+    // and make it available in our code as process.env.API_KEY.
+    // Vite security requires environment variables to be prefixed with VITE_ to be exposed to the client.
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
+      'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY)
     }
   }
 })

@@ -35,7 +35,7 @@ interface PresentationContentResponse {
 export const generatePresentationContent = async (topic: string): Promise<Omit<Slide, 'imageUrl'>[]> => {
   const prompt = `You are a warm and friendly storyteller for children aged 5-8. Your task is to create a simple and charming presentation about "${topic}".
 The presentation must be written entirely in CATALAN for the parts that will be displayed to the user.
-Generate between 5 to 8 slides.
+Generate between 8 to 10 slides.
 For each slide, provide the following fields in a JSON object:
 1. "title": A very short and simple title for the slide, in CATALAN.
 2. "content": A short, simple, and magical paragraph (maximum 30 words) for the slide, in CATALAN.

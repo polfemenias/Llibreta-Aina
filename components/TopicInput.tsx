@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ImageStyle } from '../types';
-import { GenerateIcon, MicrophoneIcon } from './Icons';
+import { PaperPlaneIcon, MicrophoneIcon } from './Icons';
 
 declare global {
   interface Window {
@@ -148,9 +148,10 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, s
               type="submit"
               disabled={isLoading || (!topic.trim() && !transcript.trim())}
               className="generate-button font-display"
+              aria-label={isLoading ? 'Dibuixant...' : 'Dibuixa!'}
               >
-              <GenerateIcon />
-              <span>{isLoading ? 'Dibuixant...' : 'Dibuixa!'}</span>
+              <PaperPlaneIcon />
+              <span className="generate-button-text">{isLoading ? 'Dibuixant...' : 'Dibuixa!'}</span>
           </button>
       </div>
        {isListening && <AudioWaveVisualizer />}

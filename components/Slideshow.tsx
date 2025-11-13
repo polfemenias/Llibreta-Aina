@@ -29,6 +29,7 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
   }, [slides, onClose]);
 
   useEffect(() => {
+    // Show text whenever a new slide appears
     setIsTextVisible(true);
   }, [currentIndex]);
 
@@ -72,39 +73,36 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
   }
 
   return (
-    <div className="slideshow-overlay animate-fade-in" role="dialog" aria-modal="true">
-       <button onClick={onClose} className="slideshow-close-button" aria-label="Tancar presentació">
-            <CloseIcon />
-       </button>
-
-      <div 
-        className="slideshow-container"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onClick={() => setIsTextVisible(v => !v)}
-      >
-        <div className="slideshow-image-wrapper">
-            {currentSlide.imageUrl ? (
-                <img src={currentSlide.imageUrl} alt={currentSlide.title} className="slide-image" />
-            ) : (
-                <div className="slide-loading-placeholder">
-                    <SpinnerIcon className="spinner-icon" />
-                    <span className="slide-loading-text">Dibuixant...</span>
-                </div>
-            )}
-        </div>
-        
-        <div className={`slide-caption ${isTextVisible ? 'visible' : ''}`}>
-             <h3 className="slide-title font-display">{currentSlide.title}</h3>
-        </div>
+    <div 
+      className="slideshow-overlay animate-fade-in" 
+      role="dialog" 
+      aria-modal="true"
+      onClick={() => setIsTextVisible(v => !v)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Background Image Layer */}
+      <div className="slideshow-image-container">
+        {currentSlide.imageUrl ? (
+            <img src={currentSlide.imageUrl} alt={currentSlide.title} className="slide-image" key={currentSlide.imageUrl} />
+        ) : (
+            <div className="slide-loading-placeholder">
+                <SpinnerIcon className="spinner-icon" />
+                <span className="slide-loading-text">Dibuixant...</span>
+            </div>
+        )}
       </div>
 
-       <div className={`slide-content-box ${isTextVisible ? 'visible' : ''}`}>
-          <p>{currentSlide.content}</p>
+      {/* UI and Text Layer */}
+       <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="slideshow-close-button" aria-label="Tancar presentació">
+            <CloseIcon />
+       </button>
+      
+        <div className={`slide-text-content ${isTextVisible ? 'visible' : ''}`}>
+             <h3 className="slide-title">{currentSlide.title}</h3>
+             <p className="slide-body">{currentSlide.content}</p>
         </div>
 
-
-        {/* --- Navigation Buttons --- */}
         {slides.length > 1 && (
             <>
             <button 
@@ -124,7 +122,6 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
             </>
         )}
 
-        {/* --- Slide Indicators --- */}
         {slides.length > 1 && (
               <div className="slide-indicators">
                 {slides.map((_, index) => (

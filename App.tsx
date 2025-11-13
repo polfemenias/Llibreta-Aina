@@ -6,8 +6,10 @@ import { LoadingOverlay } from './components/LoadingOverlay';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
 import type { Presentation, Slide, ImageStyle } from './types';
 import { IMAGE_STYLES } from './constants';
-import { LogoIcon } from './components/Icons';
 import './app.css';
+
+// Pastel colors inspired by "cuaderno rubio"
+const PASTEL_COLORS = ['#FFDDC1', '#D4F0F0', '#FFECB3', '#C8E6C9', '#F8BBD0', '#D1C4E9'];
 
 function App() {
   const [presentations, setPresentations] = useState<Presentation[]>([]);
@@ -19,6 +21,10 @@ function App() {
   const [isHistoryVisible, setIsHistoryVisible] = useState(true);
 
   useEffect(() => {
+    // Set a random pastel background color on app load
+    const randomColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+    document.body.style.setProperty('--bg-paper', randomColor);
+
     try {
       const storedPresentations = localStorage.getItem('storyslides-presentations');
       if (storedPresentations) {
@@ -128,24 +134,16 @@ function App() {
       />
 
       <div className={`main-content ${isHistoryVisible ? 'history-visible' : ''}`}>
-        <header className="app-header">
-          <div className="header-title-group">
-             <button
-              onClick={() => setIsHistoryVisible(!isHistoryVisible)}
-              className="menu-button"
-              aria-label="Toggle History Panel"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div className="logo-title-wrapper">
-              <LogoIcon />
-              <h1 className="app-title font-display">La Llibreta de l'Aina</h1>
-            </div>
-          </div>
-        </header>
-
+        <button
+          onClick={() => setIsHistoryVisible(!isHistoryVisible)}
+          className="menu-button"
+          aria-label="Toggle History Panel"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        
         <main className="main-area">
           {error && (
             <div className="error-banner" role="alert">
@@ -155,8 +153,8 @@ function App() {
           )}
 
           <div className="intro-text">
-              <h2 className="intro-title font-display">Dibuixa una història, aprèn jugant.</h2>
-              <p className="intro-subtitle">Escriu un tema, tria un estil, i mira com la màgia crea una presentació per als més petits.</p>
+              <h1 className="intro-title font-display">LA LLIBRETA DE L'AINA</h1>
+              <p className="intro-tagline">On aprendre és una aventura.</p>
           </div>
           
           <div className="form-container">

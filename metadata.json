@@ -1,0 +1,7 @@
+{
+  "name": "La Llibreta de l'Aina",
+  "description": "An application that generates illustrative slideshows to explain educational concepts to children, using AI to create both the text and images in various artistic styles.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

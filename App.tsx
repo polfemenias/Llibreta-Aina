@@ -1,0 +1,179 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { TopicInput } from './components/TopicInput';
+import { Slideshow } from './components/Slideshow';
+import { HistoryPanel } from './components/HistoryPanel';
+import { LoadingOverlay } from './components/LoadingOverlay';
+import { generatePresentationContent, generateSlideImage } from './services/geminiService';
+import type { Presentation, Slide, ImageStyle } from './types';
+import { IMAGE_STYLES } from './constants';
+import { LogoIcon } from './components/Icons';
+import './app.css';
+
+function App() {
+  const [presentations, setPresentations] = useState<Presentation[]>([]);
+  const [currentPresentation, setCurrentPresentation] = useState<Presentation | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [isHistoryVisible, setIsHistoryVisible] = useState(true);
+
+  useEffect(() => {
+    try {
+      const storedPresentations = localStorage.getItem('storyslides-presentations');
+      if (storedPresentations) {
+        setPresentations(JSON.parse(storedPresentations));
+      }
+    } catch (e) {
+      console.error("Failed to load presentations from localStorage", e);
+    }
+    if (window.innerWidth < 1024) {
+      setIsHistoryVisible(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+        if(presentations.length > 0) {
+            localStorage.setItem('storyslides-presentations', JSON.stringify(presentations));
+        } else {
+            localStorage.removeItem('storyslides-presentations');
+        }
+    } catch (e) {
+      console.error("Failed to save presentations to localStorage", e);
+    }
+  }, [presentations]);
+
+  const handleGenerate = async (topic: string, style: ImageStyle) => {
+    if (!topic || isGenerating) return;
+
+    setIsLoading(true);
+    setIsGenerating(true);
+    setError(null);
+    setCurrentPresentation(null);
+    setLoadingMessage('Creant la història...');
+
+    try {
+      const contentSlides = await generatePresentationContent(topic);
+      
+      const newPresentation: Presentation = {
+        id: new Date().toISOString(),
+        topic,
+        style,
+        slides: contentSlides.map(s => ({ ...s, imageUrl: undefined })),
+      };
+
+      setCurrentPresentation(newPresentation);
+      setIsLoading(false);
+      setLoadingMessage('');
+
+      const generatedSlides: Slide[] = [];
+      const slidesToGenerate = [...contentSlides];
+      
+      for (let i = 0; i < slidesToGenerate.length; i++) {
+        const slideContent = slidesToGenerate[i];
+        const imageUrl = await generateSlideImage(slideContent.imagePrompt, style.prompt);
+        const completedSlide = { ...slideContent, imageUrl };
+        generatedSlides.push(completedSlide);
+        
+        setCurrentPresentation(prev => prev ? { 
+            ...prev, 
+            slides: [
+                ...generatedSlides, 
+                ...slidesToGenerate.slice(i + 1).map(s => ({...s, imageUrl: undefined}))
+            ] 
+        } : null);
+      }
+
+      const finalPresentation: Presentation = { ...newPresentation, slides: generatedSlides };
+      setPresentations(prev => [finalPresentation, ...prev]);
+
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.');
+      setCurrentPresentation(null);
+    } finally {
+      setIsLoading(false);
+      setIsGenerating(false);
+      setLoadingMessage('');
+    }
+  };
+  
+  const handleSelectPresentation = (presentation: Presentation) => {
+    setCurrentPresentation(presentation);
+    if(window.innerWidth < 1024) {
+      setIsHistoryVisible(false);
+    }
+  };
+
+  const handleClearHistory = () => {
+    setPresentations([]);
+    setCurrentPresentation(null);
+  };
+
+  const handleCloseSlideshow = () => {
+    setCurrentPresentation(null);
+  }
+
+  return (
+    <div className="app-container">
+      {isLoading && <LoadingOverlay message={loadingMessage} />}
+      
+      <HistoryPanel
+        presentations={presentations}
+        onSelect={handleSelectPresentation}
+        onClear={handleClearHistory}
+        isVisible={isHistoryVisible}
+        onToggle={() => setIsHistoryVisible(!isHistoryVisible)}
+      />
+
+      <div className={`main-content ${isHistoryVisible ? 'history-visible' : ''}`}>
+        <header className="app-header">
+          <div className="header-title-group">
+             <button
+              onClick={() => setIsHistoryVisible(!isHistoryVisible)}
+              className="menu-button"
+              aria-label="Toggle History Panel"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="logo-title-wrapper">
+              <LogoIcon />
+              <h1 className="app-title font-display">La Llibreta de l'Aina</h1>
+            </div>
+          </div>
+        </header>
+
+        <main className="main-area">
+          {error && (
+            <div className="error-banner" role="alert">
+              <p className="font-bold">Error!</p>
+              <p>{error}</p>
+            </div>
+          )}
+
+          <div className="intro-text">
+              <h2 className="intro-title font-display">Dibuixa una història, aprèn jugant.</h2>
+              <p className="intro-subtitle">Escriu un tema, tria un estil, i mira com la màgia crea una presentació per als més petits.</p>
+          </div>
+          
+          <div className="form-container">
+              <TopicInput onGenerate={handleGenerate} isLoading={isGenerating} styles={IMAGE_STYLES} />
+          </div>
+        </main>
+      </div>
+      
+      {currentPresentation && (
+        <Slideshow 
+          key={currentPresentation.id} 
+          presentation={currentPresentation} 
+          onClose={handleCloseSlideshow}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;

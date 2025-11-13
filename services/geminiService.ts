@@ -5,7 +5,7 @@ let ai: GoogleGenAI | null = null;
 
 /**
  * Lazily initializes and returns the GoogleGenAI client instance.
- * It reads the API key from the environment variables.
+ * It reads the API key from Vite's environment variables.
  * @returns {GoogleGenAI} The initialized GoogleGenAI client.
  */
 const getAiClient = (): GoogleGenAI => {
@@ -13,11 +13,14 @@ const getAiClient = (): GoogleGenAI => {
         return ai;
     }
 
+    // FIX: Use process.env.API_KEY as per the guidelines. This also resolves the TypeScript error.
     const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-        throw new Error("La clau de l'API no està configurada. Assegura't que has creat un 'Secret' a Replit amb el nom API_KEY.");
-    }
 
+    if (!apiKey) {
+      // FIX: Updated error message to be more generic.
+      throw new Error("API Key no trobada. Assegura't que la clau d'API estigui configurada correctament.");
+    }
+    
     ai = new GoogleGenAI({ apiKey });
     return ai;
 }
@@ -77,8 +80,9 @@ The entire final output must be a single valid JSON object.`;
 
   } catch (error) {
     console.error("Error generating presentation content:", error);
-    if (error instanceof Error && (error.message.toLowerCase().includes("api key") || error.message.includes("clau de l'API"))) {
-        throw new Error("Hi ha hagut un problema d'autenticació amb el servei d'IA.");
+    if (error instanceof Error && error.message.toLowerCase().includes("api key")) {
+        // FIX: Updated error message to be more generic.
+        throw new Error("Hi ha hagut un problema d'autenticació amb el servei d'IA. Verifica que la teva API Key estigui ben configurada.");
     }
     throw new Error("No he pogut crear la història. Potser el tema és massa complicat. Prova amb un altre!");
   }
@@ -109,8 +113,9 @@ export const generateSlideImage = async (description: string, stylePrompt: strin
 
   } catch (error) {
     console.error("Error generating slide image:", error);
-    if (error instanceof Error && (error.message.toLowerCase().includes("api key") || error.message.includes("clau de l'API"))) {
-        throw new Error("Hi ha hagut un problema d'autenticació amb el servei d'IA.");
+    if (error instanceof Error && error.message.toLowerCase().includes("api key")) {
+        // FIX: Updated error message to be more generic.
+        throw new Error("Hi ha hagut un problema d'autenticació amb el servei d'IA. Verifica que la teva API Key estigui ben configurada.");
     }
     throw new Error("No he pogut dibuixar una de les imatges. Torna-ho a provar.");
   }

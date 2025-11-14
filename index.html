@@ -7,19 +7,28 @@
     <title>La Llibreta de l'Aina</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Cormorant+Garamond:wght@400;700&family=Fredoka:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg-paper: #FDFDF7; /* Default, will be overridden by JS */
-        --bg-panel: #F4EEDF;
-        --bg-form: #F5F3E9;
-        --text-title: #4A405D;
-        --text-tagline: #5E8C8C;
-        --text-dark: #3D3522;
-        --text-light: #756643;
-        --border-color: #DEDBCB;
-        --accent-red: #E94F37;
+        /* UI Palette */
+        --color-main: #192A41; /* Navy Blue */
+        --color-bg-form: #FDFBF4; /* Ivory/Cream */
+        --color-bg-panel: #F5F2E9;
+        --color-border: #DCD9CE;
+        --color-white: #FFFFFF;
+        --color-muted: #667281; /* Muted gray-blue */
+
+        /* Default background */
+        --bg-color: #E6E0F8;
+        --dot-color: #c1b8d4;
       }
+      
+      .theme-lavender { --bg-color: #E6E0F8; --dot-color: #c1b8d4; }
+      .theme-mint { --bg-color: #D9EFDE; --dot-color: #b4d1ba; }
+      .theme-peach { --bg-color: #F8E4D8; --dot-color: #e3c4b1; }
+      .theme-sky { --bg-color: #DDEBF8; --dot-color: #b9cde2; }
+      .theme-butter { --bg-color: #F8F4D8; --dot-color: #e0daac; }
+
 
       *, *::before, *::after {
         box-sizing: border-box;
@@ -27,9 +36,6 @@
 
       body {
         margin: 0;
-        background-color: var(--bg-paper);
-        font-family: 'Comic Neue', cursive;
-        color: var(--text-dark);
         overflow: hidden;
       }
 
@@ -68,7 +74,8 @@
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1",
     "vite": "https://aistudiocdn.com/vite@^7.2.2",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "process": "https://aistudiocdn.com/process@^0.11.10"
   }
 }
 </script>

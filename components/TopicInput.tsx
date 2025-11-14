@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ImageStyle } from '../types';
-import { PaperPlaneIcon, MicrophoneIcon } from './Icons';
+import { PaperPlaneIcon, MicrophoneIcon, RecordingIcon } from './Icons';
 
 declare global {
   interface Window {
@@ -124,9 +124,9 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, s
               onClick={toggleListening}
               disabled={isLoading}
               className={`mic-button ${isListening ? 'listening' : ''}`}
-              aria-label={isListening ? 'Deixar de parlar' : 'Parlar'}
+              aria-label={isListening ? 'Deixar de gravar' : 'Gravar amb la veu'}
               >
-              <MicrophoneIcon />
+              {isListening ? <RecordingIcon /> : <MicrophoneIcon />}
           </button>
         )}
       </div>
@@ -147,11 +147,11 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, s
           <button
               type="submit"
               disabled={isLoading || (!topic.trim() && !transcript.trim())}
-              className="generate-button font-display"
-              aria-label={isLoading ? 'Dibuixant...' : 'Dibuixa!'}
+              className="generate-button"
+              aria-label={isLoading ? 'Creant...' : 'Crea!'}
               >
               <PaperPlaneIcon />
-              <span className="generate-button-text">{isLoading ? 'Dibuixant...' : 'Dibuixa!'}</span>
+              <span className="generate-button-text">{isLoading ? 'Creant...' : 'Crea!'}</span>
           </button>
       </div>
        {isListening && <AudioWaveVisualizer />}

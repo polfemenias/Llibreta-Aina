@@ -16,7 +16,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({ presentations, onSel
       <div className="history-header">
         <div className="history-title-group">
           <HistoryIcon />
-          <h2 className="history-title font-display">Historial</h2>
+          <h2 className="history-title">Historial</h2>
         </div>
         <button
           onClick={onToggle}
@@ -44,7 +44,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({ presentations, onSel
           </ul>
         ) : (
           <div className="history-empty-state">
-            <p>Les teves històries apareceran aquí.</p>
+            <p>Les teves històries apareixeran aquí.</p>
           </div>
         )}
       </div>

@@ -33,13 +33,14 @@ interface PresentationContentResponse {
 }
 
 export const generatePresentationContent = async (topic: string): Promise<Omit<Slide, 'imageUrl'>[]> => {
-  const prompt = `You are a warm and friendly storyteller for children aged 5-8. Your task is to create a simple and charming presentation about "${topic}".
+  const prompt = `You are an enthusiastic and knowledgeable guide for curious young learners, aged 9-12. Your task is to create a clear, engaging, and informative presentation about "${topic}".
+The tone should be educational but exciting, avoiding overly simplistic or patronizing language.
 The presentation must be written entirely in CATALAN for the parts that will be displayed to the user.
 Generate between 8 to 10 slides.
 For each slide, provide the following fields in a JSON object:
-1. "title": A very short and simple title for the slide, in CATALAN.
-2. "content": A short, simple, and magical paragraph (maximum 30 words) for the slide, in CATALAN.
-3. "imagePrompt": A detailed description in ENGLISH for an AI image generator. This prompt should describe a vivid, cute, and colorful scene that visually represents the slide's content.
+1. "title": A concise and interesting title for the slide, in CATALAN.
+2. "content": An informative and engaging paragraph (around 40-50 words) for the slide, in CATALAN.
+3. "imagePrompt": A detailed description in ENGLISH for an AI image generator. This prompt should describe a scene that is visually compelling and accurately represents the slide's content, leaning towards realism or a specific artistic style rather than a cartoonish one.
 
 The entire final output must be a single valid JSON object.`;
 
@@ -89,7 +90,12 @@ The entire final output must be a single valid JSON object.`;
 };
 
 export const generateSlideImage = async (description: string, stylePrompt: string): Promise<string> => {
-  const fullPrompt = `${description}, portrait aspect ratio (2:3), in the style of ${stylePrompt}`;
+  // By making the style instruction a dominant, separate command, we prevent the "children's storyteller"
+  // context from the text generation from "bleeding" into the image style, ensuring realistic photos are realistic.
+  const fullPrompt = `Image content description: "${description}".
+
+The image MUST strictly adhere to the following artistic style and constraints: "${stylePrompt}".
+The image MUST have a portrait aspect ratio (2:3).`;
 
   try {
     const aiClient = getAiClient();

@@ -8,8 +8,7 @@ import type { Presentation, Slide, ImageStyle } from './types';
 import { IMAGE_STYLES } from './constants';
 import './app.css';
 
-// Pastel colors inspired by "cuaderno rubio"
-const PASTEL_COLORS = ['#FFDDC1', '#D4F0F0', '#FFECB3', '#C8E6C9', '#F8BBD0', '#D1C4E9'];
+const themes = ['theme-lavender', 'theme-mint', 'theme-peach', 'theme-sky', 'theme-butter'];
 
 function App() {
   const [presentations, setPresentations] = useState<Presentation[]>([]);
@@ -21,9 +20,8 @@ function App() {
   const [isHistoryVisible, setIsHistoryVisible] = useState(true);
 
   useEffect(() => {
-    // Set a random pastel background color on app load
-    const randomColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
-    document.body.style.setProperty('--bg-paper', randomColor);
+    const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+    document.body.className = randomTheme;
 
     try {
       const storedPresentations = localStorage.getItem('storyslides-presentations');
@@ -33,6 +31,7 @@ function App() {
     } catch (e) {
       console.error("Failed to load presentations from localStorage", e);
     }
+
     if (window.innerWidth < 1024) {
       setIsHistoryVisible(false);
     }
@@ -153,12 +152,14 @@ function App() {
           )}
 
           <div className="intro-text">
-              <h1 className="intro-title font-display">LA LLIBRETA DE L'AINA</h1>
+              <h1 className="intro-title">LA LLIBRETA DE L'AINA</h1>
               <p className="intro-tagline">On aprendre és una aventura.</p>
           </div>
           
-          <div className="form-container">
-              <TopicInput onGenerate={handleGenerate} isLoading={isGenerating} styles={IMAGE_STYLES} />
+          <div className="form-wrapper">
+            <div className="form-container">
+                <TopicInput onGenerate={handleGenerate} isLoading={isGenerating} styles={IMAGE_STYLES} />
+            </div>
           </div>
         </main>
       </div>

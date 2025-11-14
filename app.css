@@ -1,18 +1,14 @@
 /* App.css */
 
-.font-display {
-  font-family: 'Fredoka', sans-serif;
-}
-
 body {
   margin: 0;
-  background-color: var(--bg-paper); /* Set via JS */
-  font-family: 'Comic Neue', cursive;
-  color: var(--text-dark);
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 500;
+  color: var(--color-main);
   overflow: hidden;
-  /* Dotted grid pattern */
-  background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0);
-  background-size: 20px 20px;
+  background-color: var(--bg-color);
+  background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
   transition: background-color 0.5s ease;
 }
 
@@ -27,7 +23,6 @@ body {
   flex-direction: column;
   transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
   width: 100%;
-  background-color: transparent;
   position: relative;
 }
 
@@ -38,73 +33,108 @@ body {
   }
 }
 
+/* Custom animations */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+}
+
 /* Header Elements */
 .menu-button {
   position: absolute;
   top: 1.5rem;
   left: 1.5rem;
   z-index: 10;
-  background: none;
+  background-color: rgba(25, 42, 65, 0.1);
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 99px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s;
-  color: var(--text-light);
+  color: var(--color-main);
+}
+.menu-button svg {
+  width: 1.75rem;
+  height: 1.75rem;
 }
 .menu-button:hover {
-  background-color: rgba(0,0,0,0.05);
+  background-color: rgba(25, 42, 65, 0.2);
 }
 
-/* Main Area */
+/* Main Area Layout */
 .main-area {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 5vw, 3rem) clamp(1rem, 5vw, 3rem);
-  overflow-y: auto;
-  align-items: center;
+  height: 100%;
+  padding: 1rem;
 }
 
 .intro-text {
+  flex: 1 1 45%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  max-width: 50rem;
-  margin-bottom: 3rem;
+  padding: 1rem;
 }
 
 .intro-title {
-  font-size: clamp(2.8rem, 10vw, 5.5rem);
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-title);
-  text-shadow: 2px 2px 0px rgba(0,0,0,0.08);
+  font-family: 'Bungee Shade', cursive;
+  font-size: clamp(3.5rem, 15vw, 8rem);
+  font-weight: 400;
+  color: var(--color-main);
   line-height: 1;
-  text-transform: uppercase;
+  margin: 0;
 }
 
 .intro-tagline {
-  font-family: 'Comic Neue', cursive;
-  font-weight: 700;
-  font-size: clamp(1.2rem, 3vw, 1.6rem);
-  color: var(--text-tagline);
+  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  color: var(--color-main);
   margin-top: 1rem;
+  font-weight: 700;
+}
+
+.form-wrapper {
+  flex: 1 1 55%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1rem 0;
 }
 
 .form-container {
   width: 100%;
-  max-width: 40rem;
+  max-width: 32rem;
+}
+
+@media (min-width: 1024px) {
+  .main-area {
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: 2rem;
+  }
+  .intro-text, .form-wrapper {
+    flex: 0 1 auto;
+  }
+  .form-wrapper {
+    padding: 0;
+  }
 }
 
 .error-banner {
-  background-color: #fbe0dd;
-  border-left: 5px solid var(--accent-red);
-  color: var(--accent-red);
+  background-color: #fde2e2;
+  border: 2px solid var(--color-main);
+  color: var(--color-main);
   padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 4px;
+  border-radius: 12px;
 }
 .error-banner .font-bold {
   font-weight: 700;
@@ -114,17 +144,18 @@ body {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(253, 253, 247, 0.8);
+  background-color: rgba(253, 251, 244, 0.8);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 50;
   backdrop-filter: blur(4px);
-  color: var(--text-dark);
+  color: var(--color-main);
 }
 .loading-message {
-  font-size: 1.5rem;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.75rem;
   margin-top: 1rem;
   font-weight: normal;
 }
@@ -137,14 +168,17 @@ body {
   height: 100%;
   width: 100%;
   max-width: 20rem;
-  background-color: var(--bg-panel);
-  border-right: 2px solid var(--border-color);
-  box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.05);
+  background-color: var(--bg-color);
+  background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  border-right: 2px solid var(--color-main);
+  box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   z-index: 20;
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
+  font-family: 'Quicksand', sans-serif;
 }
 .history-panel.visible {
   transform: translateX(0);
@@ -155,17 +189,18 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border-bottom: 2px dashed var(--border-color);
+  border-bottom: 2px solid var(--color-main);
   flex-shrink: 0;
 }
 .history-title-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-title);
+  color: var(--color-main);
 }
 .history-title {
-  font-size: 1.5rem;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 1.75rem;
   font-weight: 700;
 }
 .panel-toggle-button {
@@ -174,7 +209,7 @@ body {
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 99px;
-  color: var(--text-light);
+  color: var(--color-main);
 }
 .panel-toggle-button:hover {
   background-color: rgba(0,0,0,0.05);
@@ -195,33 +230,33 @@ body {
   padding: 1rem;
   border: none;
   background: none;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   transition: background-color 0.2s;
 }
 .history-item-button:hover {
-  background-color: #EFE6D2;
+  background-color: var(--color-border);
 }
 .history-item-topic {
-  font-weight: bold;
-  color: var(--text-dark);
+  font-weight: 700;
+  color: var(--color-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .history-item-style {
   font-size: 0.875rem;
-  color: var(--text-light);
+  color: var(--color-muted);
 }
 .history-empty-state {
   padding: 2rem;
   text-align: center;
-  color: var(--text-light);
+  color: var(--color-muted);
 }
 
 .history-footer {
   padding: 1rem;
-  border-top: 2px dashed var(--border-color);
+  border-top: 2px solid var(--color-main);
 }
 .clear-history-button {
   width: 100%;
@@ -230,10 +265,11 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background-color: var(--accent-red);
-  color: white;
+  background-color: var(--color-main);
+  color: var(--color-bg-form);
   font-weight: bold;
-  border: 2px solid #5c1c14;
+  border: none;
+  border-bottom: 3px solid #0f1a29;
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.1s;
@@ -245,11 +281,10 @@ body {
 
 /* Topic Input */
 .topic-form {
-  background-color: var(--bg-form);
+  background-color: var(--color-main);
   padding: 1rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -260,108 +295,116 @@ body {
 }
 .topic-textarea {
   width: 100%;
-  padding: 0.75rem 3rem 0.75rem 0.75rem;
-  background-color: #fff;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  font-family: 'Comic Neue', cursive;
+  padding: 0.75rem 3.5rem 0.75rem 0.75rem;
+  background-color: var(--color-white);
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-family: 'Quicksand', sans-serif;
   font-size: 1.1rem;
   resize: none;
   min-height: 70px;
+  color: var(--color-main);
 }
 .topic-textarea:focus {
-  outline: 2px solid var(--text-tagline);
+  outline: none;
+  border-color: var(--color-main);
+  box-shadow: 0 0 0 2px rgba(25, 42, 65, 0.3);
 }
 .mic-button {
   position: absolute;
   right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 0.5rem;
   background: none;
   border: none;
   padding: 0.5rem;
   cursor: pointer;
-  color: var(--text-light);
+  color: var(--color-muted);
+  opacity: 0.7;
   border-radius: 99px;
+  transition: all 0.2s;
+}
+.mic-button:hover {
+  opacity: 1;
+  background-color: rgba(0,0,0,0.05);
 }
 .mic-button.listening {
-  color: var(--text-tagline);
+  opacity: 1;
+  color: #E53935;
+  background-color: rgba(229, 57, 53, 0.1);
+  animation: pulse 2s infinite;
 }
 .form-controls {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   gap: 0.75rem;
 }
 
+@media (min-width: 640px) {
+  .form-controls {
+    flex-direction: row;
+  }
+}
+
 .style-select {
   padding: 0.85rem;
-  background-color: #fff;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  font-family: 'Comic Neue', cursive;
+  background-color: var(--color-white);
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-family: 'Quicksand', sans-serif;
   font-size: 1rem;
-  flex-grow: 1;
-  width: auto;
+  font-weight: 700;
+  width: 100%;
   height: 52px;
+  color: var(--color-main);
 }
 
 .generate-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--text-title);
-  color: white;
-  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--color-main);
+  font-weight: 400;
   border: none;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   cursor: pointer;
-  transition: all 0.1s ease-in-out;
-  flex-shrink: 0;
-  width: 52px;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
   height: 52px;
-  padding: 0;
+  padding: 0.75rem 1.5rem;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-family: 'Bungee', cursive;
 }
 
 .generate-button svg {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .generate-button-text {
-  display: none;
+  display: inline;
 }
 
 @media (min-width: 640px) {
-  .style-select {
-    width: 100%;
-    flex-grow: 1;
-  }
   .generate-button {
     width: auto;
-    height: auto;
-    padding: 0.75rem 1.5rem;
-    gap: 0.5rem;
-  }
-  .generate-button-text {
-    display: inline;
-    font-size: 1.5rem;
-  }
-  .generate-button svg {
-    width: 1.25rem;
-    height: 1.25rem;
   }
 }
 
 .generate-button:hover {
-  transform: scale(1.03);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(25, 42, 65, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 .generate-button:disabled {
   background-color: #ccc;
+  color: #888;
   cursor: not-allowed;
-  transform: scale(1);
+  transform: none;
   box-shadow: none;
+  border-bottom: none;
 }
 .audio-wave {
   display: flex;
@@ -372,7 +415,7 @@ body {
 }
 .audio-wave-bar {
   width: 4px;
-  background-color: var(--text-tagline);
+  background-color: var(--color-bg-form);
   border-radius: 99px;
   animation: wave 1.2s ease-in-out infinite;
 }
@@ -382,7 +425,7 @@ body {
 .audio-wave-bar:nth-child(4) { height: 20px; animation-delay: 0.4s; }
 .audio-wave-bar:nth-child(5) { height: 12px; animation-delay: 0.5s; }
 
-/* Slideshow - NEW FULLSCREEN STYLES */
+/* Slideshow - FULLSCREEN STYLES */
 .slideshow-overlay {
   position: fixed;
   inset: 0;
@@ -416,20 +459,19 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-panel);
-  color: var(--text-light);
+  background-color: var(--color-bg-panel);
+  color: var(--color-main);
 }
 .spinner-icon {
   height: 3rem;
   width: 3rem;
-  color: var(--text-light);
+  color: var(--color-main);
 }
 .slide-loading-text {
   margin-top: 1rem;
   font-size: 1.25rem;
-  font-family: 'Fredoka', cursive;
+  font-family: 'Luckiest Guy', cursive;
 }
-
 
 .slideshow-close-button {
   position: absolute;
@@ -468,21 +510,22 @@ body {
 }
 
 .slide-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
   font-size: clamp(2rem, 8vw, 3.5rem);
   text-shadow: 0 2px 8px rgba(0,0,0,0.5);
   margin: 0 0 1rem;
   line-height: 1.1;
-  font-weight: 700;
 }
 
 .slide-body {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Quicksand', sans-serif;
   font-size: clamp(1.25rem, 4vw, 1.75rem);
   line-height: 1.6;
   text-shadow: 0 1px 4px rgba(0,0,0,0.7);
   max-width: 45rem;
   margin: 0 auto;
+  font-weight: 500;
 }
 
 .slideshow-nav-button {

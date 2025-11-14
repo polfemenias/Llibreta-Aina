@@ -1,6 +1,7 @@
 import type { Presentation } from '../types';
 
 const HISTORY_KEY = 'aina-notebook-history';
+const MAX_HISTORY_ITEMS = 10;
 
 /**
  * Retrieves the list of presentations from local storage.
@@ -33,12 +34,19 @@ const saveHistory = (presentations: Presentation[]): void => {
 /**
  * Adds a new presentation to the history and saves it.
  * Presentations are kept in descending chronological order (newest first).
+ * It enforces a limit on the number of stored presentations to prevent storage issues.
  * @param {Presentation} presentation The new presentation to add.
  * @returns {Presentation[]} The updated list of presentations.
  */
 export const addPresentation = (presentation: Presentation): Presentation[] => {
   const currentHistory = getHistory();
-  const updatedHistory = [presentation, ...currentHistory];
+  let updatedHistory = [presentation, ...currentHistory];
+
+  // Enforce a limit on the number of history items to prevent storage overflow
+  if (updatedHistory.length > MAX_HISTORY_ITEMS) {
+    updatedHistory = updatedHistory.slice(0, MAX_HISTORY_ITEMS);
+  }
+  
   saveHistory(updatedHistory);
   return updatedHistory;
 };

@@ -3,6 +3,7 @@ import { TopicInput } from './components/TopicInput';
 import { Slideshow } from './components/Slideshow';
 import { HistoryPanel } from './components/HistoryPanel';
 import { LoadingOverlay } from './components/LoadingOverlay';
+import { PasswordProtection } from './components/PasswordProtection';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
 import type { Presentation, Slide, ImageStyle } from './types';
 import { IMAGE_STYLES } from './constants';
@@ -11,6 +12,7 @@ import './app.css';
 const themes = ['theme-lavender', 'theme-mint', 'theme-peach', 'theme-sky', 'theme-butter'];
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('is-authenticated') === 'true');
   const [presentations, setPresentations] = useState<Presentation[]>([]);
   const [currentPresentation, setCurrentPresentation] = useState<Presentation | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -20,6 +22,8 @@ function App() {
   const [isHistoryVisible, setIsHistoryVisible] = useState(true);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const randomTheme = themes[Math.floor(Math.random() * themes.length)];
     document.body.className = randomTheme;
 
@@ -35,9 +39,10 @@ function App() {
     if (window.innerWidth < 1024) {
       setIsHistoryVisible(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     try {
         if(presentations.length > 0) {
             localStorage.setItem('storyslides-presentations', JSON.stringify(presentations));
@@ -47,7 +52,12 @@ function App() {
     } catch (e) {
       console.error("Failed to save presentations to localStorage", e);
     }
-  }, [presentations]);
+  }, [presentations, isAuthenticated]);
+
+  const handleCorrectPassword = () => {
+    sessionStorage.setItem('is-authenticated', 'true');
+    setIsAuthenticated(true);
+  };
 
   const handleGenerate = async (topic: string, style: ImageStyle) => {
     if (!topic || isGenerating) return;
@@ -118,6 +128,10 @@ function App() {
 
   const handleCloseSlideshow = () => {
     setCurrentPresentation(null);
+  }
+
+  if (!isAuthenticated) {
+    return <PasswordProtection onCorrectPassword={handleCorrectPassword} />;
   }
 
   return (

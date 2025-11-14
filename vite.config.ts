@@ -9,8 +9,6 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY),
-      // Simplified Firebase config using a single JSON variable
-      'process.env.FIREBASE_CONFIG_JSON': JSON.stringify(env.VITE_FIREBASE_CONFIG_JSON),
     }
   }
 })

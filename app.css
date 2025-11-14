@@ -149,6 +149,7 @@ body {
   margin-top: 0.5rem;
 }
 
+
 /* Password Protection Screen */
 .password-protection-overlay {
   width: 100%;
@@ -159,10 +160,9 @@ body {
   justify-content: center;
   padding: 1rem;
 }
-
-.password-form {
+.password-protection-container {
   width: 100%;
-  max-width: 24rem;
+  max-width: 22rem;
   background-color: var(--color-bg-form);
   padding: 2rem;
   border-radius: 1.5rem;
@@ -170,22 +170,22 @@ body {
   border: 2px solid var(--color-main);
   text-align: center;
 }
-
-.password-title {
+.password-protection-title {
   font-family: 'Bungee', cursive;
   font-size: 1.75rem;
   color: var(--color-main);
   margin-top: 0;
   margin-bottom: 1.5rem;
 }
-
+.password-input-group {
+  margin-bottom: 1rem;
+}
 .password-input {
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 1.1rem;
   border: 2px solid var(--color-border);
   border-radius: 0.75rem;
-  margin-bottom: 1rem;
   text-align: center;
 }
 .password-input:focus {
@@ -193,7 +193,6 @@ body {
   border-color: var(--color-main);
   box-shadow: 0 0 0 2px rgba(25, 42, 65, 0.3);
 }
-
 .password-submit-button {
   width: 100%;
   padding: 0.75rem;
@@ -205,11 +204,15 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-top: 0.5rem;
 }
 .password-submit-button:hover {
   background-color: #0f1a29;
 }
-
+.password-submit-button:disabled {
+  background-color: var(--color-muted);
+  cursor: not-allowed;
+}
 .password-error {
   color: #E53935;
   margin-top: 1rem;
@@ -317,6 +320,34 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.user-info {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  text-align: center;
+  word-break: break-all;
+}
+.user-info strong {
+  color: var(--color-main);
+  display: block;
+}
+
+.logout-button {
+  width: 100%;
+  padding: 0.6rem;
+  background: none;
+  border: 2px solid var(--color-muted);
+  color: var(--color-muted);
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.logout-button:hover {
+  border-color: var(--color-main);
+  color: var(--color-main);
+  background-color: rgba(25, 42, 65, 0.05);
 }
 
 .clear-history-button {

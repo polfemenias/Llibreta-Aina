@@ -1,43 +1,55 @@
 import React, { useState } from 'react';
 
 interface PasswordProtectionProps {
-  onCorrectPassword: () => void;
+  onSuccess: () => void;
 }
 
-// !!! IMPORTANT !!!
-// Aquesta és la contrasenya d'accés a la llibreta compartida.
-// La pots canviar demanant-m'ho quan vulguis.
-const CORRECT_PASSWORD = 'Aina2015';
-
-export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onCorrectPassword }) => {
+export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const correctPassword = 'Aina2015';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === CORRECT_PASSWORD) {
-      onCorrectPassword();
-    } else {
-      setError('Contrasenya incorrecta.');
-      setPassword('');
-    }
+    setIsLoading(true);
+    setError('');
+
+    // Simple delay to simulate a check and prevent brute-forcing
+    setTimeout(() => {
+      if (password === correctPassword) {
+        onSuccess();
+      } else {
+        setError('La contrasenya no és correcta.');
+        setIsLoading(false);
+        setPassword('');
+      }
+    }, 300);
   };
 
   return (
     <div className="password-protection-overlay">
-      <div className="password-form">
-        <h1 className="password-title">Accés Privat</h1>
+      <div className="password-protection-container">
+        <h2 className="password-protection-title">La Llibreta de l'Aina</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="password-input"
-            placeholder="Introdueix la contrasenya"
-            autoFocus
-          />
-          <button type="submit" className="password-submit-button">
-            Entrar
+          <div className="password-input-group">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contrasenya"
+              className="password-input"
+              disabled={isLoading}
+              autoFocus
+            />
+          </div>
+          <button
+            type="submit"
+            className="password-submit-button"
+            disabled={isLoading || !password}
+          >
+            {isLoading ? 'Verificant...' : 'Entrar'}
           </button>
           {error && <p className="password-error">{error}</p>}
         </form>

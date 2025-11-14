@@ -49,17 +49,17 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({ presentations, onSel
         )}
       </div>
 
-      {presentations.length > 0 && (
-        <div className="history-footer">
-          <button
-            onClick={onClear}
-            className="clear-history-button"
-          >
-            <TrashIcon />
-            <span>Netejar Historial</span>
-          </button>
+      <div className="history-footer">
+          {presentations.length > 0 && (
+            <button
+              onClick={onClear}
+              className="clear-history-button"
+            >
+              <TrashIcon />
+              <span>Netejar Historial</span>
+            </button>
+          )}
         </div>
-      )}
     </aside>
   );
 };

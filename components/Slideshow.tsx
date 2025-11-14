@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Presentation, GenerationProgress } from '../types';
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, SpinnerIcon, DownloadIcon } from './Icons';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, SpinnerIcon, DownloadIcon, BrokenImageIcon, RetryIcon } from './Icons';
 import { exportPresentationToPdf } from '../services/pdfService';
 
 interface SlideshowProps {
@@ -8,6 +8,7 @@ interface SlideshowProps {
   onClose: () => void;
   isGenerating?: boolean;
   generationProgress?: GenerationProgress | null;
+  onRetryImage: (index: number) => Promise<void>;
 }
 
 const GenerationProgressIndicator: React.FC<{ progress: GenerationProgress }> = ({ progress }) => (
@@ -20,12 +21,12 @@ const GenerationProgressIndicator: React.FC<{ progress: GenerationProgress }> = 
     </div>
 );
 
-
-export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isGenerating, generationProgress }) => {
+export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isGenerating, generationProgress, onRetryImage }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isTextVisible, setIsTextVisible] = useState(true);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [retryingIndex, setRetryingIndex] = useState<number | null>(null);
   const { slides } = presentation;
 
   useEffect(() => {
@@ -47,6 +48,16 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isG
     // Show text whenever a new slide appears
     setIsTextVisible(true);
   }, [currentIndex]);
+
+  const handleRetryClick = async (index: number) => {
+    if (retryingIndex !== null) return;
+    setRetryingIndex(index);
+    try {
+      await onRetryImage(index);
+    } finally {
+      setRetryingIndex(null);
+    }
+  };
 
   const handleExportPdf = async () => {
     if (isExportingPdf || isGenerating) return;
@@ -95,7 +106,6 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isG
     setTouchStart(null);
   };
   
-  // Special loading state for when content is being generated and no slides are available yet.
   if (isGenerating && (!slides || slides.length === 0)) {
     return (
       <div className="slideshow-overlay animate-fade-in" role="dialog" aria-modal="true">
@@ -128,8 +138,24 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isG
             <img src={currentSlide.imageUrl} alt={currentSlide.title} className="slide-image" key={currentSlide.imageUrl} />
         ) : (
             <div className="slide-loading-placeholder">
-                <SpinnerIcon className="spinner-icon" />
-                <span className="slide-loading-text">Dibuixant...</span>
+                {isGenerating || retryingIndex === currentIndex ? (
+                    <>
+                        <SpinnerIcon className="spinner-icon" />
+                        <span className="slide-loading-text">{retryingIndex === currentIndex ? 'Reintentant...' : 'Dibuixant...'}</span>
+                    </>
+                ) : (
+                    <div className="slide-error-placeholder">
+                        <BrokenImageIcon />
+                        <span className="slide-error-text">No s'ha pogut crear la imatge</span>
+                        <button 
+                            className="retry-image-button" 
+                            onClick={(e) => { e.stopPropagation(); handleRetryClick(currentIndex); }}
+                        >
+                            <RetryIcon />
+                            <span>Reintentar</span>
+                        </button>
+                    </div>
+                )}
             </div>
         )}
       </div>
@@ -142,7 +168,7 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isG
               onClick={(e) => { e.stopPropagation(); handleExportPdf(); }}
               className="slideshow-control-button"
               aria-label="Descarregar PDF"
-              disabled={isExportingPdf || isGenerating}
+              disabled={isExportingPdf || isGenerating || slides.some(s => !s.imageUrl)}
             >
               {isExportingPdf ? <SpinnerIcon className="h-6 w-6 animate-scribble-spin" /> : <DownloadIcon />}
             </button>

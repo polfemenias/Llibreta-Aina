@@ -87,3 +87,19 @@ export const PaperPlaneIcon = () => (
         <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
     </svg>
 );
+
+export const BrokenImageIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.2 14.2L10 18l-4-4-6 6h20l-6-6-3.8-3.8z"/>
+        <path d="M3 3h18v11"/>
+        <path d="M12 12a3 3 0 100-6 3 3 0 000 6z"/>
+        <path d="M21 3l-9 9"/>
+    </svg>
+);
+
+export const RetryIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M23 4v6h-6"/>
+        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+    </svg>
+);

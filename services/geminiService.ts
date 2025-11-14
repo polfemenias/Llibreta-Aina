@@ -89,10 +89,7 @@ The entire final output must be a single valid JSON object.`;
   }
 };
 
-export const generateSlideImage = async (description: string, stylePrompt: string): Promise<string> => {
-  // By making the style instruction a dominant, separate command, we prevent the "children's storyteller"
-  // context from the text generation from "bleeding" into the image style, ensuring realistic photos are realistic.
-  // REMOVED explicit aspect ratio request to improve reliability.
+export const generateSlideImage = async (description: string, stylePrompt: string): Promise<string | null> => {
   const fullPrompt = `Image content description: "${description}".
 
 The image MUST strictly adhere to the following artistic style and constraints: "${stylePrompt}".`;
@@ -107,7 +104,6 @@ The image MUST strictly adhere to the following artistic style and constraints: 
       },
     });
     
-    // Check for explicit safety blocks first
     if (response.promptFeedback?.blockReason) {
         throw new Error(`El tema ha estat bloquejat per la IA per motius de seguretat (${response.promptFeedback.blockReason}). Prova amb un altre tema.`);
     }
@@ -125,36 +121,28 @@ The image MUST strictly adhere to the following artistic style and constraints: 
     if (firstPart && firstPart.inlineData) {
       return `data:${firstPart.inlineData.mimeType};base64,${firstPart.inlineData.data}`;
     } else {
-      // This case means we got a valid response, but no image data.
-      // It might be due to a subtle issue like recitation or other finish reasons.
       const reason = candidate.finishReason ? ` Raó: ${candidate.finishReason}` : '';
       throw new Error(`No he rebut dades d'imatge de l'API.${reason}`);
     }
   };
 
   try {
-    // First attempt
     return await callApi();
   } catch (error) {
     console.warn("First attempt to generate image failed. Retrying once...", error);
-    // On failure, wait a moment and try one more time.
     await new Promise(resolve => setTimeout(resolve, 1500));
     try {
-        // Second attempt
         return await callApi();
     } catch (finalError) {
         console.error("Error generating slide image after retry:", finalError);
         if (finalError instanceof Error) {
-            // Propagate our specific, user-friendly safety messages
-            if (finalError.message.includes('seguretat') || finalError.message.includes('bloquejat')) {
+            // Propagate critical, non-recoverable errors
+            if (finalError.message.includes('seguretat') || finalError.message.includes('bloquejat') || finalError.message.toLowerCase().includes("api key")) {
                 throw finalError;
             }
-            if (finalError.message.toLowerCase().includes("api key")) {
-                throw new Error("Hi ha hagut un problema d'autenticació amb el servei d'IA. Verifica que la teva API Key estigui ben configurada.");
-            }
         }
-        // Fallback to the generic error message for all other failures after retry.
-        throw new Error("No he pogut dibuixar una de les imatges. Torna-ho a provar.");
+        // For other transient errors, return null to allow the process to continue
+        return null;
     }
   }
 };

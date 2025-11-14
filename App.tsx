@@ -10,6 +10,7 @@ import { IMAGE_STYLES } from './constants';
 import './app.css';
 
 const themes = ['theme-lavender', 'theme-mint', 'theme-peach', 'theme-sky', 'theme-butter'];
+const AUTH_SESSION_KEY = 'aina-notebook-authenticated';
 
 const contentMessages = [
     "Remenant les idees al cap...",
@@ -29,7 +30,14 @@ const imageMessages = [
 const getRandomMessage = (messages: string[]) => messages[Math.floor(Math.random() * messages.length)];
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem(AUTH_SESSION_KEY) === 'true';
+    } catch {
+      // If sessionStorage is not available (e.g. in private browsing mode on some browsers)
+      return false;
+    }
+  });
   const [presentations, setPresentations] = useState<Presentation[]>([]);
   const [currentPresentation, setCurrentPresentation] = useState<Presentation | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -54,37 +62,31 @@ function App() {
 
     setIsGenerating(true);
     setError(null);
+    setCurrentPresentation(null); // Clear previous presentation before starting
 
-    // 1. Create a shell presentation to trigger the slideshow UI immediately.
-    const tempPresentation: Presentation = {
-      id: new Date().toISOString(),
-      topic,
-      style,
-      slides: [], 
-    };
-    setCurrentPresentation(tempPresentation);
-
-    // 2. Set initial progress for text generation.
+    // Set initial progress for text generation.
     setGenerationProgress({
-      currentStep: 1,
-      totalSteps: 1, // Placeholder, will be updated.
-      message: getRandomMessage(contentMessages),
+        currentStep: 1,
+        totalSteps: 1, // Placeholder
+        message: getRandomMessage(contentMessages),
     });
 
     try {
-      // 3. Generate text content.
+      // 1. Generate text content first.
       const contentSlides = await generatePresentationContent(topic);
       const totalSteps = contentSlides.length + 1;
-      
+
+      // Create a presentation shell with text-only slides
       const presentationWithText: Presentation = {
-        ...tempPresentation,
+        id: new Date().toISOString(),
+        topic,
+        style,
         slides: contentSlides.map(s => ({ ...s, imageUrl: undefined })),
       };
-
-      // 4. Update state with the text-filled slides.
+      
       setCurrentPresentation(presentationWithText);
 
-      // 5. Loop to generate images.
+      // 2. Loop to generate images one by one.
       const generatedSlides: Slide[] = [];
       for (let i = 0; i < contentSlides.length; i++) {
         setGenerationProgress({
@@ -94,10 +96,14 @@ function App() {
         });
 
         const slideContent = contentSlides[i];
+        // This call will now return null on transient failure instead of throwing
         const imageUrl = await generateSlideImage(slideContent.imagePrompt, style.prompt);
-        const completedSlide = { ...slideContent, imageUrl };
+        
+        // A slide is considered complete even if the image failed (imageUrl will be undefined)
+        const completedSlide = { ...slideContent, imageUrl: imageUrl || undefined };
         generatedSlides.push(completedSlide);
         
+        // Update the presentation in real-time
         setCurrentPresentation(prev => {
             if (!prev) return null;
             const updatedSlides = [...prev.slides];
@@ -116,10 +122,43 @@ function App() {
       console.error(err);
       const errorMessage = err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.';
       setError(errorMessage);
-      setCurrentPresentation(null);
+      setCurrentPresentation(null); // Clear on critical failure
     } finally {
       setIsGenerating(false);
       setGenerationProgress(null);
+    }
+  };
+
+  const handleRetryImage = async (slideIndex: number) => {
+    if (!currentPresentation) return;
+
+    const slideToRetry = currentPresentation.slides[slideIndex];
+    const presentationStyle = currentPresentation.style;
+
+    try {
+        const imageUrl = await generateSlideImage(slideToRetry.imagePrompt, presentationStyle.prompt);
+        if (imageUrl) {
+            setCurrentPresentation(prev => {
+                if (!prev) return null;
+                const updatedSlides = [...prev.slides];
+                updatedSlides[slideIndex] = { ...updatedSlides[slideIndex], imageUrl };
+                const updatedPresentation = { ...prev, slides: updatedSlides };
+                
+                // Also update the history
+                const updatedHistory = historyService.updatePresentation(updatedPresentation);
+                setPresentations(updatedHistory);
+
+                return updatedPresentation;
+            });
+        } else {
+           // Handle case where retry also fails, perhaps show a toast message in the future
+           console.error(`Failed to retry image for slide ${slideIndex}`);
+           alert("El reintent ha fallat. Prova-ho de nou més tard.");
+        }
+    } catch (err) {
+        console.error(`Error retrying image for slide ${slideIndex}:`, err);
+        const errorMessage = err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.';
+        alert(`No s'ha pogut regenerar la imatge: ${errorMessage}`);
     }
   };
   
@@ -142,7 +181,14 @@ function App() {
   }
 
   const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
+    try {
+      sessionStorage.setItem(AUTH_SESSION_KEY, 'true');
+      setIsAuthenticated(true);
+    } catch (e) {
+      console.error("No s'ha pogut desar l'estat d'autenticació:", e);
+      // Fallback to non-persistent auth if storage fails
+      setIsAuthenticated(true);
+    }
   };
 
   if (!isAuthenticated) {
@@ -198,6 +244,7 @@ function App() {
           onClose={handleCloseSlideshow}
           isGenerating={isGenerating}
           generationProgress={generationProgress}
+          onRetryImage={handleRetryImage}
         />
       )}
     </div>

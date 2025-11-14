@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TopicInput } from './components/TopicInput';
 import { Slideshow } from './components/Slideshow';
 import { HistoryPanel } from './components/HistoryPanel';
-import { LoadingOverlay } from './components/LoadingOverlay';
 import { PasswordProtection } from './components/PasswordProtection';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
 import { onPresentationsUpdate, addPresentation, clearAllPresentations, isFirebaseConfigured, getInitializationError } from './services/firebaseService';
@@ -49,12 +48,10 @@ function App() {
 
     let unsubscribe = () => {};
     if (isFirebaseConfigured()) {
-      // Set up Firebase real-time listener if configured
       unsubscribe = onPresentationsUpdate((newPresentations) => {
         setPresentations(newPresentations);
       });
     } else {
-      // Fallback to localStorage if Firebase is not configured
       try {
         const storedPresentations = localStorage.getItem('presentations-history');
         if (storedPresentations) {
@@ -69,11 +66,9 @@ function App() {
       setIsHistoryVisible(false);
     }
 
-    // Cleanup listener on component unmount or auth change
     return () => unsubscribe();
   }, [isAuthenticated]);
   
-  // Persist to localStorage when presentations change and Firebase isn't used.
   useEffect(() => {
     if (isAuthenticated && !isFirebaseConfigured()) {
         try {
@@ -98,60 +93,62 @@ function App() {
     setCurrentPresentation(null);
     setGenerationProgress({
       currentStep: 1,
-      totalSteps: 1, // Placeholder, will update after content generation
+      totalSteps: 1, 
       message: getRandomMessage(contentMessages),
     });
 
     try {
+      // Step 1: Generate all text content first
       const contentSlides = await generatePresentationContent(topic);
-      const totalSteps = contentSlides.length + 1; // 1 step for content, N for images
+      const totalSteps = contentSlides.length + 1; // 1 for content + N for images
       
-      const newPresentation: Presentation = {
+      const presentationWithText: Presentation = {
         id: new Date().toISOString(),
         topic,
         style,
         slides: contentSlides.map(s => ({ ...s, imageUrl: undefined })),
       };
 
-      setCurrentPresentation(newPresentation);
+      // Show the slideshow immediately with text and placeholders for images
+      setCurrentPresentation(presentationWithText);
 
+      // Step 2: Generate images one by one and update the presentation in real-time
       const generatedSlides: Slide[] = [];
-      const slidesToGenerate = [...contentSlides];
-      
-      for (let i = 0; i < slidesToGenerate.length; i++) {
+      for (let i = 0; i < contentSlides.length; i++) {
         setGenerationProgress({
             currentStep: i + 2,
             totalSteps: totalSteps,
             message: getRandomMessage(imageMessages),
         });
 
-        const slideContent = slidesToGenerate[i];
+        const slideContent = contentSlides[i];
         const imageUrl = await generateSlideImage(slideContent.imagePrompt, style.prompt);
         const completedSlide = { ...slideContent, imageUrl };
         generatedSlides.push(completedSlide);
         
-        setCurrentPresentation(prev => prev ? { 
-            ...prev, 
-            slides: [
-                ...generatedSlides, 
-                ...slidesToGenerate.slice(i + 1).map(s => ({...s, imageUrl: undefined}))
-            ] 
-        } : null);
+        // Update the current presentation with the new image
+        setCurrentPresentation(prev => {
+            if (!prev) return null;
+            const updatedSlides = [...prev.slides];
+            updatedSlides[i] = completedSlide;
+            return { ...prev, slides: updatedSlides };
+        });
       }
 
-      const finalPresentation: Presentation = { ...newPresentation, slides: generatedSlides };
+      // Finalize the presentation and save it
+      const finalPresentation: Presentation = { ...presentationWithText, slides: generatedSlides };
       
       if (isFirebaseConfigured()) {
          await addPresentation(finalPresentation);
-         // The state will be updated by the real-time listener automatically.
       } else {
-         // Fallback to local state if Firebase is not configured
          setPresentations(prev => [finalPresentation, ...prev]);
       }
 
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.');
+      const errorMessage = err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.';
+      setError(errorMessage);
+      // Close slideshow if an error occurred during generation
       setCurrentPresentation(null);
     } finally {
       setIsGenerating(false);
@@ -170,7 +167,6 @@ function App() {
     try {
       if(isFirebaseConfigured()){
         await clearAllPresentations();
-        // The listener will automatically empty the presentations array.
       } else {
         setPresentations([]);
       }
@@ -182,6 +178,8 @@ function App() {
   };
 
   const handleCloseSlideshow = () => {
+    // Prevent closing while generation is in progress
+    if (isGenerating) return;
     setCurrentPresentation(null);
   }
 
@@ -191,8 +189,6 @@ function App() {
 
   return (
     <div className="app-container">
-      {generationProgress && <LoadingOverlay progress={generationProgress} />}
-      
       <HistoryPanel
         presentations={presentations}
         onSelect={handleSelectPresentation}
@@ -243,6 +239,8 @@ function App() {
           key={currentPresentation.id} 
           presentation={currentPresentation} 
           onClose={handleCloseSlideshow}
+          isGenerating={isGenerating}
+          generationProgress={generationProgress}
         />
       )}
     </div>

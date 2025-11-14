@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import type { Presentation } from '../types';
+import type { Presentation, GenerationProgress } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, SpinnerIcon, DownloadIcon } from './Icons';
 import { exportPresentationToPdf } from '../services/pdfService';
 
 interface SlideshowProps {
   presentation: Presentation;
   onClose: () => void;
+  isGenerating?: boolean;
+  generationProgress?: GenerationProgress | null;
 }
 
-export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) => {
+const GenerationProgressIndicator: React.FC<{ progress: GenerationProgress }> = ({ progress }) => (
+    <div className="slideshow-generation-progress">
+        <SpinnerIcon className="spinner-small" />
+        <div className="progress-text-container">
+            <span className="progress-message">{progress.message}</span>
+            <span className="progress-steps">Pas {progress.currentStep} de {progress.totalSteps}</span>
+        </div>
+    </div>
+);
+
+
+export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isGenerating, generationProgress }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isTextVisible, setIsTextVisible] = useState(true);
@@ -36,7 +49,7 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
   }, [currentIndex]);
 
   const handleExportPdf = async () => {
-    if (isExportingPdf) return;
+    if (isExportingPdf || isGenerating) return;
     
     setIsExportingPdf(true);
     try {
@@ -110,18 +123,21 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
       </div>
 
       {/* UI and Text Layer */}
-       <div className="slideshow-top-right-controls">
-          <button
-            onClick={(e) => { e.stopPropagation(); handleExportPdf(); }}
-            className="slideshow-control-button"
-            aria-label="Descarregar PDF"
-            disabled={isExportingPdf}
-          >
-            {isExportingPdf ? <SpinnerIcon className="h-6 w-6 animate-scribble-spin" /> : <DownloadIcon />}
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="slideshow-control-button" aria-label="Tancar presentació">
-            <CloseIcon />
-          </button>
+       <div className="slideshow-top-controls">
+          {isGenerating && generationProgress && <GenerationProgressIndicator progress={generationProgress} />}
+          <div className="slideshow-action-buttons">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleExportPdf(); }}
+              className="slideshow-control-button"
+              aria-label="Descarregar PDF"
+              disabled={isExportingPdf || isGenerating}
+            >
+              {isExportingPdf ? <SpinnerIcon className="h-6 w-6 animate-scribble-spin" /> : <DownloadIcon />}
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="slideshow-control-button" aria-label="Tancar presentació" disabled={isGenerating}>
+              <CloseIcon />
+            </button>
+          </div>
         </div>
       
         <div className={`slide-text-content ${isTextVisible ? 'visible' : ''}`}>

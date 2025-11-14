@@ -35,10 +35,10 @@ export const IMAGE_STYLES: ImageStyle[] = [
   },
   {
     name: 'Fotografia Realista',
-    prompt: 'award-winning professional photograph, dramatic cinematic lighting, shallow depth of field with a blurry background (bokeh), shot on a 50mm f/1.8 lens, hyper-detailed, sharp focus, rich colors, photorealistic',
+    prompt: 'ultra-realistic professional photograph, hyperrealism, sharp focus, natural lighting, high detail, captured by a professional photographer with a high-end DSLR camera, photorealistic, cinematic but grounded in reality, shallow depth of field, high resolution',
   },
   {
     name: 'Foto Antiga',
-    prompt: 'authentic 1960s Kodachrome film photograph, candid moment, slightly faded colors, visible film grain, soft focus, warm nostalgic tones, light leaks on the edges',
+    prompt: 'authentic scanned 35mm film photograph from the 1970s, candid snapshot, visible fine film grain, slightly faded and desaturated colors with a warm yellow color cast, soft natural lighting from the era, subtle lens flare and chromatic aberration typical of vintage lenses, captures a genuine moment, nostalgic atmosphere, photorealistic',
   },
 ];

@@ -37,6 +37,16 @@ function App() {
       unsubscribe = onPresentationsUpdate((newPresentations) => {
         setPresentations(newPresentations);
       });
+    } else {
+      // Fallback to localStorage if Firebase is not configured
+      try {
+        const storedPresentations = localStorage.getItem('presentations-history');
+        if (storedPresentations) {
+          setPresentations(JSON.parse(storedPresentations));
+        }
+      } catch (e) {
+        console.error("Failed to load history from localStorage", e);
+      }
     }
     
     if (window.innerWidth < 1024) {
@@ -46,6 +56,18 @@ function App() {
     // Cleanup listener on component unmount or auth change
     return () => unsubscribe();
   }, [isAuthenticated]);
+  
+  // Persist to localStorage when presentations change and Firebase isn't used.
+  useEffect(() => {
+    if (isAuthenticated && !isFirebaseConfigured()) {
+        try {
+            localStorage.setItem('presentations-history', JSON.stringify(presentations));
+        } catch (e) {
+            console.error("Failed to save history to localStorage", e);
+        }
+    }
+  }, [presentations, isAuthenticated]);
+
 
   const handleCorrectPassword = () => {
     sessionStorage.setItem('is-authenticated', 'true');
@@ -170,8 +192,7 @@ function App() {
         <main className="main-area">
           {firebaseError && (
             <div className="error-banner warning" role="status">
-              <p><strong>Avís:</strong> La connexió al núvol no està disponible. Les teves creacions no es desaran.</p>
-              <p className="error-details">{firebaseError}</p>
+              <p>{firebaseError}</p>
             </div>
           )}
           {error && (

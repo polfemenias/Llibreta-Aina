@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Presentation } from '../types';
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, SpinnerIcon } from './Icons';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, SpinnerIcon, DownloadIcon } from './Icons';
+import { exportPresentationToPdf } from '../services/pdfService';
 
 interface SlideshowProps {
   presentation: Presentation;
@@ -11,6 +12,7 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isTextVisible, setIsTextVisible] = useState(true);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const { slides } = presentation;
 
   useEffect(() => {
@@ -32,6 +34,20 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
     // Show text whenever a new slide appears
     setIsTextVisible(true);
   }, [currentIndex]);
+
+  const handleExportPdf = async () => {
+    if (isExportingPdf) return;
+    
+    setIsExportingPdf(true);
+    try {
+      await exportPresentationToPdf(presentation);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+      alert("No s'ha pogut generar el PDF. Torna-ho a provar.");
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   const goToPrevious = () => {
     const isFirstSlide = currentIndex === 0;
@@ -94,9 +110,19 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose }) =
       </div>
 
       {/* UI and Text Layer */}
-       <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="slideshow-close-button" aria-label="Tancar presentació">
+       <div className="slideshow-top-right-controls">
+          <button
+            onClick={(e) => { e.stopPropagation(); handleExportPdf(); }}
+            className="slideshow-control-button"
+            aria-label="Descarregar PDF"
+            disabled={isExportingPdf}
+          >
+            {isExportingPdf ? <SpinnerIcon className="h-6 w-6 animate-scribble-spin" /> : <DownloadIcon />}
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="slideshow-control-button" aria-label="Tancar presentació">
             <CloseIcon />
-       </button>
+          </button>
+        </div>
       
         <div className={`slide-text-content ${isTextVisible ? 'visible' : ''}`}>
              <h3 className="slide-title">{currentSlide.title}</h3>

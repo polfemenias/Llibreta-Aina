@@ -554,11 +554,16 @@ body {
   font-family: 'Luckiest Guy', cursive;
 }
 
-.slideshow-close-button {
+.slideshow-top-right-controls {
   position: absolute;
   top: 1rem;
   right: 1rem;
   z-index: 50;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.slideshow-control-button {
   color: white;
   background-color: rgba(0,0,0,0.3);
   border-radius: 99px;
@@ -566,9 +571,21 @@ body {
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.slideshow-close-button:hover {
+.slideshow-control-button svg {
+    width: 24px;
+    height: 24px;
+}
+.slideshow-control-button:hover {
   background-color: rgba(0,0,0,0.6);
+}
+.slideshow-control-button:disabled {
+  cursor: not-allowed;
+  background-color: rgba(0,0,0,0.5);
+  opacity: 0.7;
 }
 
 .slide-text-content {

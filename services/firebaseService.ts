@@ -18,13 +18,13 @@ let _isFirebaseConfigured = false;
 let _initializationError: string | null = null;
 
 const initializeFirebase = () => {
-    if (app || _initializationError) return; // Already initialized or failed
+    if (app) return; // Already initialized
 
     const firebaseConfigJSON = process.env.FIREBASE_CONFIG_JSON;
 
     if (!firebaseConfigJSON || firebaseConfigJSON === 'undefined') {
-        _initializationError = "La configuració de la base de dades al núvol (Firebase) no s'ha trobat. Assegura't que la variable d'entorn VITE_FIREBASE_CONFIG_JSON estigui ben definida.";
-        console.warn(`[Firebase Service] Not initialized: ${_initializationError}`);
+        _initializationError = "Avís: La connexió al núvol no està disponible. Les creacions es desaran només en aquest navegador.";
+        console.warn(`[Firebase Service] Not initialized: VITE_FIREBASE_CONFIG_JSON environment variable not found.`);
         _isFirebaseConfigured = false;
         return;
     }
@@ -32,7 +32,6 @@ const initializeFirebase = () => {
     try {
         const firebaseConfig = JSON.parse(firebaseConfigJSON);
 
-        // Basic validation of the parsed config
         if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
             throw new Error("El JSON de configuració de Firebase és invàlid o li falten camps essencials (apiKey, projectId).");
         }
@@ -40,10 +39,10 @@ const initializeFirebase = () => {
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         _isFirebaseConfigured = true;
-        console.log("[Firebase Service] Successfully connected to the cloud database.");
+        console.log(`[Firebase Service] Successfully connected to the cloud database.`);
     } catch (e) {
         const error = e instanceof Error ? e.message : String(e);
-        _initializationError = `Hi ha hagut un error en connectar amb la base de dades al núvol: ${error}`;
+        _initializationError = `Error en connectar amb la base de dades al núvol: ${error}`;
         console.error(`[Firebase Service] Initialization failed:`, e);
         _isFirebaseConfigured = false;
     }
@@ -53,7 +52,10 @@ const initializeFirebase = () => {
 initializeFirebase();
 
 export const isFirebaseConfigured = (): boolean => _isFirebaseConfigured;
-export const getInitializationError = (): string | null => _initializationError;
+
+export const getInitializationError = (): string | null => {
+    return _initializationError;
+};
 
 const PRESENTATIONS_COLLECTION = 'presentations';
 

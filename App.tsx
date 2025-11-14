@@ -90,6 +90,7 @@ function App() {
 
     setIsGenerating(true);
     setError(null);
+    setFirebaseError(null);
     setCurrentPresentation(null);
     setGenerationProgress({
       currentStep: 1,
@@ -135,20 +136,29 @@ function App() {
         });
       }
 
-      // Finalize the presentation and save it
+      // Finalize the presentation and save it in the background
       const finalPresentation: Presentation = { ...presentationWithText, slides: generatedSlides };
       
-      if (isFirebaseConfigured()) {
-         await addPresentation(finalPresentation);
-      } else {
-         setPresentations(prev => [finalPresentation, ...prev]);
-      }
+      const saveInBackground = async () => {
+        try {
+            if (isFirebaseConfigured()) {
+                await addPresentation(finalPresentation);
+            } else {
+                setPresentations(prev => [finalPresentation, ...prev]);
+            }
+        } catch (err) {
+            console.error("Failed to save presentation to cloud:", err);
+            setFirebaseError(err instanceof Error ? err.message : "No s'ha pogut desar la presentació a l'historial del núvol.");
+        }
+      };
+
+      saveInBackground(); // Fire-and-forget: does not block the UI
 
     } catch (err) {
       console.error(err);
       const errorMessage = err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.';
       setError(errorMessage);
-      // Close slideshow if an error occurred during generation
+      // Close slideshow if a critical error occurred during generation
       setCurrentPresentation(null);
     } finally {
       setIsGenerating(false);

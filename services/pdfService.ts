@@ -49,9 +49,10 @@ export const exportPresentationToPdf = async (presentation: Presentation): Promi
     const slide = presentation.slides[i];
     
     // Clear the container and render the current slide's HTML structure
+    // Using a div with background-image for better aspect ratio handling (cover)
     container.innerHTML = `
       <div style="width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; background: #192A41;">
-        <img src="${slide.imageUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('${slide.imageUrl}'); background-size: cover; background-position: center center; z-index: 1;"></div>
         <div style="position: relative; z-index: 2; color: white; text-align: center; padding: 20px 30px; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);">
           <h2 style="font-size: 28px; margin: 0 0 10px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.7);">${slide.title}</h2>
           <p style="font-size: 16px; margin: 0; line-height: 1.5; text-shadow: 0 1px 3px rgba(0,0,0,0.8); max-width: 90%; margin-left: auto; margin-right: auto;">${slide.content}</p>
@@ -59,21 +60,23 @@ export const exportPresentationToPdf = async (presentation: Presentation): Promi
       </div>
     `;
 
-    // IMPORTANT: Wait for the image inside the container to fully load before capturing
-    const img = container.querySelector('img');
-    if (img) {
-      await new Promise(resolve => {
-        if (img.complete && img.naturalHeight !== 0) {
-          resolve(true);
-        } else {
-          img.onload = () => resolve(true);
-          img.onerror = () => {
-            console.warn(`Could not load image for slide ${i}, proceeding without it.`);
-            resolve(false); // Continue even if an image fails to load
-          };
-        }
-      });
+    // IMPORTANT: Preload the image to ensure it's rendered by html2canvas
+    if (slide.imageUrl) {
+        await new Promise(resolve => {
+            const img = new Image();
+            img.src = slide.imageUrl!;
+            if (img.complete) {
+                resolve(true);
+            } else {
+                img.onload = () => resolve(true);
+                img.onerror = () => {
+                    console.warn(`Could not load image for slide ${i}, proceeding without it.`);
+                    resolve(false);
+                };
+            }
+        });
     }
+
 
     // Capture the container using html2canvas
     const canvas = await html2canvas(container, {

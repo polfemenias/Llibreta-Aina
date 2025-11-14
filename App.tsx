@@ -54,26 +54,37 @@ function App() {
 
     setIsGenerating(true);
     setError(null);
-    setCurrentPresentation(null);
+
+    // 1. Create a shell presentation to trigger the slideshow UI immediately.
+    const tempPresentation: Presentation = {
+      id: new Date().toISOString(),
+      topic,
+      style,
+      slides: [], 
+    };
+    setCurrentPresentation(tempPresentation);
+
+    // 2. Set initial progress for text generation.
     setGenerationProgress({
       currentStep: 1,
-      totalSteps: 1, 
+      totalSteps: 1, // Placeholder, will be updated.
       message: getRandomMessage(contentMessages),
     });
 
     try {
+      // 3. Generate text content.
       const contentSlides = await generatePresentationContent(topic);
       const totalSteps = contentSlides.length + 1;
       
       const presentationWithText: Presentation = {
-        id: new Date().toISOString(),
-        topic,
-        style,
+        ...tempPresentation,
         slides: contentSlides.map(s => ({ ...s, imageUrl: undefined })),
       };
 
+      // 4. Update state with the text-filled slides.
       setCurrentPresentation(presentationWithText);
 
+      // 5. Loop to generate images.
       const generatedSlides: Slide[] = [];
       for (let i = 0; i < contentSlides.length; i++) {
         setGenerationProgress({

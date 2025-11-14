@@ -95,6 +95,18 @@ export const Slideshow: React.FC<SlideshowProps> = ({ presentation, onClose, isG
     setTouchStart(null);
   };
   
+  // Special loading state for when content is being generated and no slides are available yet.
+  if (isGenerating && (!slides || slides.length === 0)) {
+    return (
+      <div className="slideshow-overlay animate-fade-in" role="dialog" aria-modal="true">
+        <div className="slide-loading-placeholder">
+          <SpinnerIcon className="spinner-icon" />
+          {generationProgress && <span className="slide-loading-text">{generationProgress.message}</span>}
+        </div>
+      </div>
+    );
+  }
+
   const currentSlide = slides[currentIndex];
 
   if (!currentSlide) {

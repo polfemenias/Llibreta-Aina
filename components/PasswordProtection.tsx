@@ -5,9 +5,9 @@ interface PasswordProtectionProps {
 }
 
 // !!! IMPORTANT !!!
-// Aquesta contrasenya és ara la clau d'accés a la base de dades compartida.
-// Canvia-la per una que només la teva família conegui.
-const CORRECT_PASSWORD = 'FAMILIA_CREATIVA_2024';
+// Aquesta és la contrasenya d'accés a la llibreta compartida.
+// La pots canviar demanant-m'ho quan vulguis.
+const CORRECT_PASSWORD = 'Aina2015';
 
 export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onCorrectPassword }) => {
   const [password, setPassword] = useState('');

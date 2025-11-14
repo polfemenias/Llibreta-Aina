@@ -24,12 +24,18 @@ const firebaseConfig = {
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
+let initializationAttempted = false;
+let initializationError: string | null = null;
 
 const initializeFirebase = () => {
-    if (app) return;
+    if (app) return; // Already initialized successfully
+    if (initializationAttempted) return; // Don't try again if it failed once
+
+    initializationAttempted = true;
 
     if (Object.values(firebaseConfig).some(value => !value)) {
-        console.error("Les claus de configuració de Firebase no estan completes. Assegura't d'haver configurat totes les variables d'entorn (VITE_FIREBASE_...) a Netlify.");
+        initializationError = "La configuració de la base de dades al núvol (Firebase) és incorrecta o està incompleta. Assegura't que les claus de configuració estiguin ben definides a l'entorn de desplegament.";
+        console.error(initializationError);
         return;
     }
     
@@ -37,15 +43,26 @@ const initializeFirebase = () => {
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
     } catch (e) {
+        initializationError = "Hi ha hagut un error en connectar amb la base de dades al núvol.";
         console.error("Error inicialitzant Firebase:", e);
     }
 };
+
+const ensureDb = (): Firestore => {
+    initializeFirebase();
+    if (!db) {
+        // Throw the specific error from initialization, or a generic fallback.
+        throw new Error(initializationError || "La connexió amb la base de dades no s'ha pogut establir.");
+    }
+    return db;
+}
 
 const PRESENTATIONS_COLLECTION = 'presentations';
 
 export const onPresentationsUpdate = (callback: (presentations: Presentation[]) => void): (() => void) => {
     initializeFirebase();
     if (!db) {
+        if(initializationError) console.error(initializationError);
         return () => {}; // Return an empty unsubscribe function if init failed
     }
 
@@ -65,10 +82,9 @@ export const onPresentationsUpdate = (callback: (presentations: Presentation[]) 
 };
 
 export const addPresentation = async (presentation: Presentation): Promise<void> => {
-    initializeFirebase();
-    if (!db) throw new Error("Firebase no està inicialitzat.");
+    const dbInstance = ensureDb();
     try {
-        await addDoc(collection(db, PRESENTATIONS_COLLECTION), presentation);
+        await addDoc(collection(dbInstance, PRESENTATIONS_COLLECTION), presentation);
     } catch (error) {
         console.error("Error en afegir la presentació:", error);
         throw new Error("No s'ha pogut guardar la presentació al núvol.");
@@ -76,17 +92,16 @@ export const addPresentation = async (presentation: Presentation): Promise<void>
 };
 
 export const clearAllPresentations = async (): Promise<void> => {
-    initializeFirebase();
-    if (!db) throw new Error("Firebase no està inicialitzat.");
+    const dbInstance = ensureDb();
     try {
-        const presentationsQuery = query(collection(db, PRESENTATIONS_COLLECTION));
+        const presentationsQuery = query(collection(dbInstance, PRESENTATIONS_COLLECTION));
         const querySnapshot = await getDocs(presentationsQuery);
         
         if (querySnapshot.empty) {
             return;
         }
 
-        const batch = writeBatch(db);
+        const batch = writeBatch(dbInstance);
         querySnapshot.forEach(doc => {
             batch.delete(doc.ref);
         });

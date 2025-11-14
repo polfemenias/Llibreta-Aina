@@ -49,8 +49,12 @@ function App() {
     const randomTheme = themes[Math.floor(Math.random() * themes.length)];
     document.body.className = randomTheme;
     
-    // Load history from local storage on initial render
-    setPresentations(historyService.getHistory());
+    // Load history from IndexedDB on initial render
+    const loadHistory = async () => {
+      const history = await historyService.getHistory();
+      setPresentations(history);
+    };
+    loadHistory();
 
     if (window.innerWidth < 1024) {
       setIsHistoryVisible(false);
@@ -114,8 +118,8 @@ function App() {
 
       const finalPresentation: Presentation = { ...presentationWithText, slides: generatedSlides };
       
-      // Save to local history
-      const updatedHistory = historyService.addPresentation(finalPresentation);
+      // Save to history
+      const updatedHistory = await historyService.addPresentation(finalPresentation);
       setPresentations(updatedHistory);
 
     } catch (err) {
@@ -145,8 +149,11 @@ function App() {
                 const updatedPresentation = { ...prev, slides: updatedSlides };
                 
                 // Also update the history
-                const updatedHistory = historyService.updatePresentation(updatedPresentation);
-                setPresentations(updatedHistory);
+                const updateHistory = async () => {
+                  const updatedHistory = await historyService.updatePresentation(updatedPresentation);
+                  setPresentations(updatedHistory);
+                };
+                updateHistory();
 
                 return updatedPresentation;
             });
@@ -169,8 +176,8 @@ function App() {
     }
   };
 
-  const handleClearHistory = () => {
-    historyService.clearHistory();
+  const handleClearHistory = async () => {
+    await historyService.clearHistory();
     setPresentations([]);
     setCurrentPresentation(null);
   };

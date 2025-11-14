@@ -17,3 +17,9 @@ export interface Presentation {
   slides: Slide[];
   style: ImageStyle;
 }
+
+export interface GenerationProgress {
+  currentStep: number;
+  totalSteps: number;
+  message: string;
+}

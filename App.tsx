@@ -6,19 +6,35 @@ import { LoadingOverlay } from './components/LoadingOverlay';
 import { PasswordProtection } from './components/PasswordProtection';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
 import { onPresentationsUpdate, addPresentation, clearAllPresentations, isFirebaseConfigured, getInitializationError } from './services/firebaseService';
-import type { Presentation, Slide, ImageStyle } from './types';
+import type { Presentation, Slide, ImageStyle, GenerationProgress } from './types';
 import { IMAGE_STYLES } from './constants';
 import './app.css';
 
 const themes = ['theme-lavender', 'theme-mint', 'theme-peach', 'theme-sky', 'theme-butter'];
 
+const contentMessages = [
+    "Remenant les idees al cap...",
+    "Consultant la biblioteca de la imaginació...",
+    "Donant forma a una nova aventura...",
+    "Escrivint un conte màgic...",
+];
+
+const imageMessages = [
+    "Agafant els llapis de colors...",
+    "Barrejant pintures màgiques...",
+    "Donant vida als personatges...",
+    "Pinzellades d'imaginació...",
+    "Creant un món de fantasia...",
+];
+
+const getRandomMessage = (messages: string[]) => messages[Math.floor(Math.random() * messages.length)];
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('is-authenticated') === 'true');
   const [presentations, setPresentations] = useState<Presentation[]>([]);
   const [currentPresentation, setCurrentPresentation] = useState<Presentation | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isHistoryVisible, setIsHistoryVisible] = useState(true);
@@ -77,14 +93,18 @@ function App() {
   const handleGenerate = async (topic: string, style: ImageStyle) => {
     if (!topic || isGenerating) return;
 
-    setIsLoading(true);
     setIsGenerating(true);
     setError(null);
     setCurrentPresentation(null);
-    setLoadingMessage('Creant la història...');
+    setGenerationProgress({
+      currentStep: 1,
+      totalSteps: 1, // Placeholder, will update after content generation
+      message: getRandomMessage(contentMessages),
+    });
 
     try {
       const contentSlides = await generatePresentationContent(topic);
+      const totalSteps = contentSlides.length + 1; // 1 step for content, N for images
       
       const newPresentation: Presentation = {
         id: new Date().toISOString(),
@@ -94,13 +114,17 @@ function App() {
       };
 
       setCurrentPresentation(newPresentation);
-      setIsLoading(false);
-      setLoadingMessage('');
 
       const generatedSlides: Slide[] = [];
       const slidesToGenerate = [...contentSlides];
       
       for (let i = 0; i < slidesToGenerate.length; i++) {
+        setGenerationProgress({
+            currentStep: i + 2,
+            totalSteps: totalSteps,
+            message: getRandomMessage(imageMessages),
+        });
+
         const slideContent = slidesToGenerate[i];
         const imageUrl = await generateSlideImage(slideContent.imagePrompt, style.prompt);
         const completedSlide = { ...slideContent, imageUrl };
@@ -130,9 +154,8 @@ function App() {
       setError(err instanceof Error ? err.message : 'Ha ocorregut un error desconegut.');
       setCurrentPresentation(null);
     } finally {
-      setIsLoading(false);
       setIsGenerating(false);
-      setLoadingMessage('');
+      setGenerationProgress(null);
     }
   };
   
@@ -168,7 +191,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {isLoading && <LoadingOverlay message={loadingMessage} />}
+      {generationProgress && <LoadingOverlay progress={generationProgress} />}
       
       <HistoryPanel
         presentations={presentations}

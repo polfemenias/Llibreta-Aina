@@ -478,10 +478,10 @@ body {
 
 .slide-body {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(1rem, 4vw, 1.25rem);
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
   line-height: 1.6;
   text-shadow: 0 1px 4px rgba(0,0,0,0.7);
-  max-width: 40rem;
+  max-width: 45rem;
   margin: 0 auto;
 }
 

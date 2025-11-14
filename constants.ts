@@ -3,42 +3,42 @@ import type { ImageStyle } from './types';
 export const IMAGE_STYLES: ImageStyle[] = [
   {
     name: 'Món de Lego',
-    prompt: 'charming scene built entirely from Lego bricks, Lego minifigures, vibrant primary colors, plastic sheen, visible studs, macro photography',
+    prompt: 'charming scene built entirely from Lego bricks, featuring Lego minifigures, vibrant primary colors, clean studio lighting, glossy plastic sheen, visible studs, macro photography',
   },
   {
     name: 'Aventura Playmobil',
-    prompt: 'detailed Playmobil playset scene, charming Playmobil figures with iconic smiling faces, smooth plastic look, detailed accessories, bright and clean studio lighting',
+    prompt: 'detailed Playmobil playset scene, charming Playmobil figures with iconic smiling faces, smooth plastic look, detailed accessories, bright and clean studio lighting, vibrant colors',
   },
   {
     name: 'Diorama Detallat',
-    prompt: 'hyper-detailed diorama, miniature fimo figures, tilt-shift photography, intricate details, realistic lighting',
+    prompt: 'hyper-detailed miniature diorama, handcrafted polymer clay (fimo) figures, tilt-shift photography creating a miniature world effect, intricate details, dramatic realistic lighting, textured scenery',
   },
   {
     name: 'Món de Plastilina',
-    prompt: 'charming scene made from colorful modeling clay and plasticine, soft textures, handcrafted look, studio lighting, playful and cute characters',
+    prompt: 'charming scene made from colorful modeling clay (plasticine), stop-motion animation style like Aardman, soft textures, visible fingerprints, handcrafted look, soft studio lighting, playful and cute characters',
   },
   {
     name: 'Casa de Nines',
-    prompt: 'vibrant miniature dollhouse world, Polly Pocket style, shiny plastic toys, bright pastel colors, cheerful and detailed tiny scene',
+    prompt: 'vibrant miniature dollhouse world, in the style of Polly Pocket, shiny plastic toys, bright pastel color palette, cheerful and highly detailed tiny scene, isometric view',
   },
   {
     name: 'Conte de Feltre',
-    prompt: 'cute characters and scenes made from stitched felt, handcrafted look, soft textures, storybook illustration aesthetic',
+    prompt: 'cute characters and scenes made from layered and stitched felt, handcrafted look, soft fuzzy textures, warm gentle lighting, children\'s storybook illustration aesthetic',
   },
   {
     name: 'Adhesius Kawaii',
-    prompt: 'adorable kawaii sticker art, cute characters with big eyes, pastel colors, simple clean outlines, super cheerful and happy',
+    prompt: 'adorable kawaii sticker design, cute characters with big sparkly eyes, soft pastel colors, bold and clean outlines, die-cut with a white border, glossy vinyl finish, super cheerful and happy',
   },
   {
     name: 'Aquarel·la de Somni',
-    prompt: 'charming watercolor painting, gentle brush strokes, soft pastel color palette, dreamy storybook illustration',
+    prompt: 'charming watercolor painting, gentle wet-on-wet brush strokes with soft edges, beautiful color bleeds, soft pastel color palette, on textured watercolor paper, dreamy and whimsical children\'s storybook illustration',
   },
   {
     name: 'Fotografia Realista',
-    prompt: 'hyper-realistic photograph, cinematic lighting, sharp focus, taken with a high-quality DSLR camera, vivid colors',
+    prompt: 'award-winning professional photograph, dramatic cinematic lighting, shallow depth of field with a blurry background (bokeh), shot on a 50mm f/1.8 lens, hyper-detailed, sharp focus, rich colors, photorealistic',
   },
   {
     name: 'Foto Antiga',
-    prompt: 'authentic vintage photograph from the 1960s, faded colors, film grain, nostalgic feel, candid shot',
+    prompt: 'authentic 1960s Kodachrome film photograph, candid moment, slightly faded colors, visible film grain, soft focus, warm nostalgic tones, light leaks on the edges',
   },
 ];

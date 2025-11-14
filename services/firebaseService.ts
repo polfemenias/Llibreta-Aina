@@ -12,58 +12,55 @@ import {
 } from "firebase/firestore";
 import type { Presentation } from '../types';
 
-// Firebase configuration object from environment variables
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-};
-
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
-let initializationAttempted = false;
-let initializationError: string | null = null;
+let _isFirebaseConfigured = false;
+let _initializationError: string | null = null;
 
 const initializeFirebase = () => {
-    if (app) return; // Already initialized successfully
-    if (initializationAttempted) return; // Don't try again if it failed once
+    if (app || _initializationError) return; // Already initialized or failed
 
-    initializationAttempted = true;
+    const firebaseConfigJSON = process.env.FIREBASE_CONFIG_JSON;
 
-    if (Object.values(firebaseConfig).some(value => !value)) {
-        initializationError = "La configuració de la base de dades al núvol (Firebase) és incorrecta o està incompleta. Assegura't que les claus de configuració estiguin ben definides a l'entorn de desplegament.";
-        console.error(initializationError);
+    if (!firebaseConfigJSON || firebaseConfigJSON === 'undefined') {
+        _initializationError = "La configuració de la base de dades al núvol (Firebase) no s'ha trobat. Assegura't que la variable d'entorn VITE_FIREBASE_CONFIG_JSON estigui ben definida.";
+        console.warn(`[Firebase Service] Not initialized: ${_initializationError}`);
+        _isFirebaseConfigured = false;
         return;
     }
     
     try {
+        const firebaseConfig = JSON.parse(firebaseConfigJSON);
+
+        // Basic validation of the parsed config
+        if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+            throw new Error("El JSON de configuració de Firebase és invàlid o li falten camps essencials (apiKey, projectId).");
+        }
+        
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
+        _isFirebaseConfigured = true;
+        console.log("[Firebase Service] Successfully connected to the cloud database.");
     } catch (e) {
-        initializationError = "Hi ha hagut un error en connectar amb la base de dades al núvol.";
-        console.error("Error inicialitzant Firebase:", e);
+        const error = e instanceof Error ? e.message : String(e);
+        _initializationError = `Hi ha hagut un error en connectar amb la base de dades al núvol: ${error}`;
+        console.error(`[Firebase Service] Initialization failed:`, e);
+        _isFirebaseConfigured = false;
     }
 };
 
-const ensureDb = (): Firestore => {
-    initializeFirebase();
-    if (!db) {
-        // Throw the specific error from initialization, or a generic fallback.
-        throw new Error(initializationError || "La connexió amb la base de dades no s'ha pogut establir.");
-    }
-    return db;
-}
+// Initialize on load
+initializeFirebase();
+
+export const isFirebaseConfigured = (): boolean => _isFirebaseConfigured;
+export const getInitializationError = (): string | null => _initializationError;
 
 const PRESENTATIONS_COLLECTION = 'presentations';
 
 export const onPresentationsUpdate = (callback: (presentations: Presentation[]) => void): (() => void) => {
-    initializeFirebase();
-    if (!db) {
-        if(initializationError) console.error(initializationError);
-        return () => {}; // Return an empty unsubscribe function if init failed
+    if (!_isFirebaseConfigured || !db) {
+        console.warn("[Firebase Service] onPresentationsUpdate called but Firebase is not configured. Real-time updates are disabled.");
+        return () => {}; // Return an empty unsubscribe function
     }
 
     const presentationsQuery = query(collection(db, PRESENTATIONS_COLLECTION), orderBy('id', 'desc'));
@@ -75,39 +72,45 @@ export const onPresentationsUpdate = (callback: (presentations: Presentation[]) 
         });
         callback(presentations);
     }, (error) => {
-        console.error("Error a l'escoltar la col·lecció de presentacions:", error);
+        console.error("Error listening to presentations collection:", error);
     });
 
     return unsubscribe;
 };
 
 export const addPresentation = async (presentation: Presentation): Promise<void> => {
-    const dbInstance = ensureDb();
+    if (!_isFirebaseConfigured || !db) {
+        console.warn("[Firebase Service] addPresentation called but Firebase is not configured. The presentation will not be saved to the cloud.");
+        return;
+    }
     try {
-        await addDoc(collection(dbInstance, PRESENTATIONS_COLLECTION), presentation);
+        await addDoc(collection(db, PRESENTATIONS_COLLECTION), presentation);
     } catch (error) {
-        console.error("Error en afegir la presentació:", error);
+        console.error("Error adding presentation to the cloud:", error);
         throw new Error("No s'ha pogut guardar la presentació al núvol.");
     }
 };
 
 export const clearAllPresentations = async (): Promise<void> => {
-    const dbInstance = ensureDb();
+    if (!_isFirebaseConfigured || !db) {
+       console.warn("[Firebase Service] clearAllPresentations called but Firebase is not configured. History will not be cleared from the cloud.");
+       return;
+    }
     try {
-        const presentationsQuery = query(collection(dbInstance, PRESENTATIONS_COLLECTION));
+        const presentationsQuery = query(collection(db, PRESENTATIONS_COLLECTION));
         const querySnapshot = await getDocs(presentationsQuery);
         
         if (querySnapshot.empty) {
             return;
         }
 
-        const batch = writeBatch(dbInstance);
+        const batch = writeBatch(db);
         querySnapshot.forEach(doc => {
             batch.delete(doc.ref);
         });
         await batch.commit();
     } catch (error) {
-        console.error("Error en esborrar totes les presentacions:", error);
+        console.error("Error clearing all presentations from the cloud:", error);
         throw new Error("No s'ha pogut esborrar l'historial del núvol.");
     }
 };

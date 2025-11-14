@@ -136,8 +136,17 @@ body {
   margin-bottom: 1rem;
   border-radius: 12px;
 }
-.error-banner .font-bold {
+.error-banner strong {
   font-weight: 700;
+}
+
+.error-banner.warning {
+  background-color: #fff9e6; /* Light yellow for warnings */
+}
+.error-banner .error-details {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
 }
 
 /* Password Protection Screen */

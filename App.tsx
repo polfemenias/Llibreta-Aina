@@ -5,7 +5,7 @@ import { HistoryPanel } from './components/HistoryPanel';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { PasswordProtection } from './components/PasswordProtection';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
-import { onPresentationsUpdate, addPresentation, clearAllPresentations } from './services/firebaseService';
+import { onPresentationsUpdate, addPresentation, clearAllPresentations, isFirebaseConfigured, getInitializationError } from './services/firebaseService';
 import type { Presentation, Slide, ImageStyle } from './types';
 import { IMAGE_STYLES } from './constants';
 import './app.css';
@@ -20,18 +20,24 @@ function App() {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isHistoryVisible, setIsHistoryVisible] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    setFirebaseError(getInitializationError());
+
     const randomTheme = themes[Math.floor(Math.random() * themes.length)];
     document.body.className = randomTheme;
 
-    // Set up Firebase real-time listener
-    const unsubscribe = onPresentationsUpdate((newPresentations) => {
+    let unsubscribe = () => {};
+    if (isFirebaseConfigured()) {
+      // Set up Firebase real-time listener if configured
+      unsubscribe = onPresentationsUpdate((newPresentations) => {
         setPresentations(newPresentations);
-    });
+      });
+    }
     
     if (window.innerWidth < 1024) {
       setIsHistoryVisible(false);
@@ -88,8 +94,14 @@ function App() {
       }
 
       const finalPresentation: Presentation = { ...newPresentation, slides: generatedSlides };
-      await addPresentation(finalPresentation);
-      // The state will be updated by the real-time listener automatically.
+      
+      if (isFirebaseConfigured()) {
+         await addPresentation(finalPresentation);
+         // The state will be updated by the real-time listener automatically.
+      } else {
+         // Fallback to local state if Firebase is not configured
+         setPresentations(prev => [finalPresentation, ...prev]);
+      }
 
     } catch (err) {
       console.error(err);
@@ -111,8 +123,12 @@ function App() {
 
   const handleClearHistory = async () => {
     try {
-      await clearAllPresentations();
-      // The listener will automatically empty the presentations array.
+      if(isFirebaseConfigured()){
+        await clearAllPresentations();
+        // The listener will automatically empty the presentations array.
+      } else {
+        setPresentations([]);
+      }
       setCurrentPresentation(null);
     } catch(err) {
       console.error("Error clearing history from App:", err);
@@ -152,9 +168,15 @@ function App() {
         </button>
         
         <main className="main-area">
+          {firebaseError && (
+            <div className="error-banner warning" role="status">
+              <p><strong>Avís:</strong> La connexió al núvol no està disponible. Les teves creacions no es desaran.</p>
+              <p className="error-details">{firebaseError}</p>
+            </div>
+          )}
           {error && (
             <div className="error-banner" role="alert">
-              <p className="font-bold">Error!</p>
+              <p><strong>Error!</strong></p>
               <p>{error}</p>
             </div>
           )}

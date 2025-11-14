@@ -5,8 +5,9 @@ interface PasswordProtectionProps {
 }
 
 // !!! IMPORTANT !!!
-// Canvia aquesta contrasenya per una de més segura.
-const CORRECT_PASSWORD = 'Aina2015';
+// Aquesta contrasenya és ara la clau d'accés a la base de dades compartida.
+// Canvia-la per una que només la teva família conegui.
+const CORRECT_PASSWORD = 'FAMILIA_CREATIVA_2024';
 
 export const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onCorrectPassword }) => {
   const [password, setPassword] = useState('');

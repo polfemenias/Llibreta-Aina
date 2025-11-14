@@ -5,6 +5,7 @@ import { HistoryPanel } from './components/HistoryPanel';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { PasswordProtection } from './components/PasswordProtection';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
+import { onPresentationsUpdate, addPresentation, clearAllPresentations } from './services/firebaseService';
 import type { Presentation, Slide, ImageStyle } from './types';
 import { IMAGE_STYLES } from './constants';
 import './app.css';
@@ -27,32 +28,18 @@ function App() {
     const randomTheme = themes[Math.floor(Math.random() * themes.length)];
     document.body.className = randomTheme;
 
-    try {
-      const storedPresentations = localStorage.getItem('storyslides-presentations');
-      if (storedPresentations) {
-        setPresentations(JSON.parse(storedPresentations));
-      }
-    } catch (e) {
-      console.error("Failed to load presentations from localStorage", e);
-    }
-
+    // Set up Firebase real-time listener
+    const unsubscribe = onPresentationsUpdate((newPresentations) => {
+        setPresentations(newPresentations);
+    });
+    
     if (window.innerWidth < 1024) {
       setIsHistoryVisible(false);
     }
-  }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    try {
-        if(presentations.length > 0) {
-            localStorage.setItem('storyslides-presentations', JSON.stringify(presentations));
-        } else {
-            localStorage.removeItem('storyslides-presentations');
-        }
-    } catch (e) {
-      console.error("Failed to save presentations to localStorage", e);
-    }
-  }, [presentations, isAuthenticated]);
+    // Cleanup listener on component unmount or auth change
+    return () => unsubscribe();
+  }, [isAuthenticated]);
 
   const handleCorrectPassword = () => {
     sessionStorage.setItem('is-authenticated', 'true');
@@ -101,7 +88,8 @@ function App() {
       }
 
       const finalPresentation: Presentation = { ...newPresentation, slides: generatedSlides };
-      setPresentations(prev => [finalPresentation, ...prev]);
+      await addPresentation(finalPresentation);
+      // The state will be updated by the real-time listener automatically.
 
     } catch (err) {
       console.error(err);
@@ -121,9 +109,15 @@ function App() {
     }
   };
 
-  const handleClearHistory = () => {
-    setPresentations([]);
-    setCurrentPresentation(null);
+  const handleClearHistory = async () => {
+    try {
+      await clearAllPresentations();
+      // The listener will automatically empty the presentations array.
+      setCurrentPresentation(null);
+    } catch(err) {
+      console.error("Error clearing history from App:", err);
+      setError(err instanceof Error ? err.message : "No s'ha pogut buidar l'historial.")
+    }
   };
 
   const handleCloseSlideshow = () => {

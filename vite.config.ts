@@ -1,20 +1,21 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-// FIX: Import 'process' to provide proper types for process.cwd() and resolve TS error.
 import process from 'process'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react()],
-    // This is the key change. We tell Vite to find the VITE_API_KEY from the environment
-    // and make it available in our code as process.env.API_KEY.
-    // Vite security requires environment variables to be prefixed with VITE_ to be exposed to the client.
     define: {
-      'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY)
+      'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY),
+      // Firebase config variables
+      'process.env.FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY),
+      'process.env.FIREBASE_AUTH_DOMAIN': JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN),
+      'process.env.FIREBASE_PROJECT_ID': JSON.stringify(env.VITE_FIREBASE_PROJECT_ID),
+      'process.env.FIREBASE_STORAGE_BUCKET': JSON.stringify(env.VITE_FIREBASE_STORAGE_BUCKET),
+      'process.env.FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(env.VITE_FIREBASE_MESSAGING_SENDER_ID),
+      'process.env.FIREBASE_APP_ID': JSON.stringify(env.VITE_FIREBASE_APP_ID),
     }
   }
 })

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Modality } from '@google/genai';
-import type { Slide } from '../types';
+import type { Slide, Language } from '../types';
 
 let ai: GoogleGenAI | null = null;
 
@@ -32,14 +32,27 @@ interface PresentationContentResponse {
   slides: Omit<Slide, 'imageUrl'>[];
 }
 
-export const generatePresentationContent = async (topic: string): Promise<Omit<Slide, 'imageUrl'>[]> => {
+export const generatePresentationContent = async (topic: string, language: Language): Promise<Omit<Slide, 'imageUrl'>[]> => {
+  const langConfig = {
+    ca: {
+      langName: 'CATALAN',
+      langDesc: 'Catalan',
+    },
+    es: {
+      langName: 'SPANISH (Castellano)',
+      langDesc: 'Spanish',
+    }
+  };
+  
+  const currentLang = langConfig[language];
+
   const prompt = `You are an enthusiastic and knowledgeable guide for curious young learners, aged 9-12. Your task is to create a clear, engaging, and informative presentation about "${topic}".
 The tone should be educational but exciting, avoiding overly simplistic or patronizing language.
-The presentation must be written entirely in CATALAN for the parts that will be displayed to the user.
+The presentation must be written entirely in ${currentLang.langName} for the parts that will be displayed to the user.
 Generate between 8 to 10 slides.
 For each slide, provide the following fields in a JSON object:
-1. "title": A concise and interesting title for the slide, in CATALAN.
-2. "content": An informative and engaging paragraph (around 40-50 words) for the slide, in CATALAN.
+1. "title": A concise and interesting title for the slide, in ${currentLang.langName}.
+2. "content": An informative and engaging paragraph (around 40-50 words) for the slide, in ${currentLang.langName}.
 3. "imagePrompt": A detailed description in ENGLISH for an AI image generator. This prompt should describe a scene that is visually compelling and accurately represents the slide's content, leaning towards realism or a specific artistic style rather than a cartoonish one.
 
 The entire final output must be a single valid JSON object.`;
@@ -59,8 +72,8 @@ The entire final output must be a single valid JSON object.`;
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  title: { type: Type.STRING, description: 'The title of the slide in Catalan.' },
-                  content: { type: Type.STRING, description: 'The educational content for the slide in Catalan.' },
+                  title: { type: Type.STRING, description: `The title of the slide in ${currentLang.langDesc}.` },
+                  content: { type: Type.STRING, description: `The educational content for the slide in ${currentLang.langDesc}.` },
                   imagePrompt: { type: Type.STRING, description: 'A detailed prompt in English for the image generator.' },
                 },
                 required: ['title', 'content', 'imagePrompt'],
@@ -89,8 +102,11 @@ The entire final output must be a single valid JSON object.`;
   }
 };
 
-export const generateSlideImage = async (description: string, stylePrompt: string): Promise<string | null> => {
+export const generateSlideImage = async (description: string, stylePrompt: string, language: Language): Promise<string | null> => {
+  const langInstruction = language === 'ca' ? 'Catalan' : 'Spanish';
+  
   const fullPrompt = `Image content description: "${description}".
+Any text that might appear in the image (like signs, labels, books) MUST be in ${langInstruction}.
 
 The image MUST strictly adhere to the following artistic style and constraints: "${stylePrompt}".`;
 

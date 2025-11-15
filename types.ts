@@ -1,4 +1,6 @@
 
+export type Language = 'ca' | 'es';
+
 export interface ImageStyle {
   name: string;
   prompt: string;
@@ -16,6 +18,7 @@ export interface Presentation {
   topic: string;
   slides: Slide[];
   style: ImageStyle;
+  language: Language;
 }
 
 export interface GenerationProgress {

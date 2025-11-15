@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { ImageStyle } from '../types';
-import { PaperPlaneIcon, MicrophoneIcon, RecordingIcon } from './Icons';
+import type { ImageStyle, Language } from '../types';
+import { PaperPlaneIcon, MicrophoneIcon, RecordingIcon, ButtonSpinnerIcon } from './Icons';
 
 declare global {
   interface Window {
@@ -10,7 +10,7 @@ declare global {
 }
 
 interface TopicInputProps {
-  onGenerate: (topic: string, style: ImageStyle) => void;
+  onGenerate: (topic: string, style: ImageStyle, language: Language) => void;
   isLoading: boolean;
   styles: ImageStyle[];
 }
@@ -31,7 +31,8 @@ const AudioWaveVisualizer = () => (
 
 export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, styles }) => {
   const [topic, setTopic] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState<ImageStyle>(styles[0]);
+  const [selectedStyle, setSelectedStyle] = useState<ImageStyle | null>(null);
+  const [language, setLanguage] = useState<Language>('ca');
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any | null>(null);
@@ -102,8 +103,8 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, s
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalTopic = transcript || topic;
-    if (finalTopic.trim()) {
-      onGenerate(finalTopic.trim(), selectedStyle);
+    if (finalTopic.trim() && selectedStyle) {
+      onGenerate(finalTopic.trim(), selectedStyle, language);
     }
   };
 
@@ -115,7 +116,7 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, s
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Ex: 'La vida a l'Antiga Grècia' o 'El cicle de l'aigua'"
           className="topic-textarea"
-          rows={2}
+          rows={3}
           disabled={isLoading || isListening}
         />
         {speechRecognitionSupported && (
@@ -131,28 +132,44 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading, s
         )}
       </div>
       <div className="form-controls">
-          <select
-              value={selectedStyle.name}
-              onChange={(e) => {
-                  const style = styles.find(s => s.name === e.target.value);
-                  if (style) setSelectedStyle(style);
-              }}
-              className="style-select"
-              disabled={isLoading}
-              >
-              {styles.map(style => (
-                  <option key={style.name} value={style.name}>{style.name}</option>
-              ))}
-          </select>
-          <button
-              type="submit"
-              disabled={isLoading || (!topic.trim() && !transcript.trim())}
-              className="generate-button"
-              aria-label={isLoading ? 'Creant...' : 'Crea!'}
-              >
-              <PaperPlaneIcon />
-              <span className="generate-button-text">{isLoading ? 'Creant...' : 'Crea!'}</span>
-          </button>
+        <select
+            value={selectedStyle?.name || ""}
+            onChange={(e) => {
+                const style = styles.find(s => s.name === e.target.value);
+                setSelectedStyle(style || null);
+            }}
+            className="style-select"
+            disabled={isLoading}
+            aria-label="Estil visual"
+            required
+            >
+            <option value="" disabled>Escull el tipus d'imatge</option>
+            {styles.map(style => (
+                <option key={style.name} value={style.name}>{style.name}</option>
+            ))}
+        </select>
+        <div className="language-selector">
+            <button type="button" onClick={() => !isLoading && setLanguage('ca')} disabled={isLoading} className={`language-button ${language === 'ca' ? 'active' : ''}`}>Català</button>
+            <button type="button" onClick={() => !isLoading && setLanguage('es')} disabled={isLoading} className={`language-button ${language === 'es' ? 'active' : ''}`}>Castellano</button>
+        </div>
+        <button
+            type="submit"
+            disabled={isLoading || (!topic.trim() && !transcript.trim()) || !selectedStyle}
+            className="generate-button"
+            aria-label={isLoading ? 'Creant...' : 'Crea!'}
+            >
+            {isLoading ? (
+                <>
+                    <ButtonSpinnerIcon />
+                    <span className="generate-button-text">Creant...</span>
+                </>
+            ) : (
+                <>
+                    <PaperPlaneIcon />
+                    <span className="generate-button-text">Crea!</span>
+                </>
+            )}
+        </button>
       </div>
        {isListening && <AudioWaveVisualizer />}
     </form>

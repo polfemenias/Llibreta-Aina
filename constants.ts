@@ -30,6 +30,10 @@ export const IMAGE_STYLES: ImageStyle[] = [
     prompt: 'Adorable kawaii sticker design, chibi proportions, big sparkly eyes, soft pastel palette, bold clean outlines, glossy vinyl finish, die-cut white border, simplified rounded shapes, ultra-cute cheerful expression, flat graphic sticker style.',
   },
   {
+    name: '📖 Còmic infantil',
+    prompt: 'Simple 2D comic strip illustration for children. Features characters with clean, bold black outlines and simple shapes, reminiscent of classic newspaper comics like Peanuts or Dilbert. The scene is filled with bright, flat, solid colors, avoiding gradients or complex shading. The background is minimal and uncluttered, focusing all attention on the characters and action. Cheerful and playful mood.',
+  },
+  {
     name: '🖌️ Aquarel·la',
     prompt: 'Dreamy watercolor illustration on textured watercolor paper, soft wet-on-wet blends, delicate color bleeds, loose brush strokes, pastel palette, organic edges, whimsical children’s storybook tone, gentle transitions and hand-painted watercolor aesthetic.',
   },

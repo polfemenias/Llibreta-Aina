@@ -5,7 +5,7 @@ import { HistoryPanel } from './components/HistoryPanel';
 import { PasswordProtection } from './components/PasswordProtection';
 import { generatePresentationContent, generateSlideImage } from './services/geminiService';
 import * as historyService from './services/historyService';
-import type { Presentation, Slide, ImageStyle, GenerationProgress } from './types';
+import type { Presentation, Slide, ImageStyle, GenerationProgress, Language } from './types';
 import { IMAGE_STYLES } from './constants';
 import './app.css';
 
@@ -61,7 +61,7 @@ function App() {
     }
   }, []);
 
-  const handleGenerate = async (topic: string, style: ImageStyle) => {
+  const handleGenerate = async (topic: string, style: ImageStyle, language: Language) => {
     if (!topic || isGenerating) return;
 
     setIsGenerating(true);
@@ -77,7 +77,7 @@ function App() {
 
     try {
       // 1. Generate text content first.
-      const contentSlides = await generatePresentationContent(topic);
+      const contentSlides = await generatePresentationContent(topic, language);
       const totalSteps = contentSlides.length + 1;
 
       // Create a presentation shell with text-only slides
@@ -86,6 +86,7 @@ function App() {
         topic,
         style,
         slides: contentSlides.map(s => ({ ...s, imageUrl: undefined })),
+        language,
       };
       
       setCurrentPresentation(presentationWithText);
@@ -101,7 +102,7 @@ function App() {
 
         const slideContent = contentSlides[i];
         // This call will now return null on transient failure instead of throwing
-        const imageUrl = await generateSlideImage(slideContent.imagePrompt, style.prompt);
+        const imageUrl = await generateSlideImage(slideContent.imagePrompt, style.prompt, language);
         
         // A slide is considered complete even if the image failed (imageUrl will be undefined)
         const completedSlide = { ...slideContent, imageUrl: imageUrl || undefined };
@@ -138,9 +139,10 @@ function App() {
 
     const slideToRetry = currentPresentation.slides[slideIndex];
     const presentationStyle = currentPresentation.style;
+    const presentationLanguage = currentPresentation.language;
 
     try {
-        const imageUrl = await generateSlideImage(slideToRetry.imagePrompt, presentationStyle.prompt);
+        const imageUrl = await generateSlideImage(slideToRetry.imagePrompt, presentationStyle.prompt, presentationLanguage);
         if (imageUrl) {
             setCurrentPresentation(prev => {
                 if (!prev) return null;
